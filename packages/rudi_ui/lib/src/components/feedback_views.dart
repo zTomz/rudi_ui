@@ -70,11 +70,17 @@ final class RudiErrorView extends StatefulWidget {
     required this.title,
     required this.message,
     this.details,
+    this.showDetailsLabel,
+    this.hideDetailsLabel,
     this.primaryAction,
     this.secondaryAction,
     this.compact = false,
     super.key,
-  });
+  }) : assert(
+         details == null ||
+             (showDetailsLabel != null && hideDetailsLabel != null),
+         'Localized details labels are required when details are provided.',
+       );
 
   /// Error title.
   final String title;
@@ -84,6 +90,12 @@ final class RudiErrorView extends StatefulWidget {
 
   /// Optional technical details.
   final String? details;
+
+  /// Localized label used to reveal [details].
+  final String? showDetailsLabel;
+
+  /// Localized label used to hide [details].
+  final String? hideDetailsLabel;
 
   /// Primary recovery action.
   final Widget? primaryAction;
@@ -145,7 +157,9 @@ final class _RudiErrorViewState extends State<RudiErrorView> {
                 onPressed: () =>
                     setState(() => _detailsVisible = !_detailsVisible),
                 builder: (context, state) => Text(
-                  _detailsVisible ? 'Hide details' : 'Show details',
+                  _detailsVisible
+                      ? widget.hideDetailsLabel!
+                      : widget.showDetailsLabel!,
                   style: theme.text.label.copyWith(color: theme.colors.accent),
                 ),
               ),

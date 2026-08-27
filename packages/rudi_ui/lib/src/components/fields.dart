@@ -317,6 +317,8 @@ final class RudiNumberInput extends StatelessWidget {
   const RudiNumberInput({
     required this.value,
     required this.onChanged,
+    required this.decreaseSemanticLabel,
+    required this.increaseSemanticLabel,
     this.min,
     this.max,
     this.step = 1,
@@ -329,6 +331,12 @@ final class RudiNumberInput extends StatelessWidget {
 
   /// Called with a clamped stepped value.
   final ValueChanged<num>? onChanged;
+
+  /// Localized accessibility label for the decrement action.
+  final String decreaseSemanticLabel;
+
+  /// Localized accessibility label for the increment action.
+  final String increaseSemanticLabel;
 
   /// Optional minimum value.
   final num? min;
@@ -381,7 +389,7 @@ final class RudiNumberInput extends StatelessWidget {
             child: Row(
               children: [
                 RudiIconButton(
-                  semanticLabel: 'Decrease',
+                  semanticLabel: decreaseSemanticLabel,
                   onPressed: canDecrease
                       ? () => onChanged!(_clamp(value - step))
                       : null,
@@ -395,7 +403,7 @@ final class RudiNumberInput extends StatelessWidget {
                   ),
                 ),
                 RudiIconButton(
-                  semanticLabel: 'Increase',
+                  semanticLabel: increaseSemanticLabel,
                   onPressed: canIncrease
                       ? () => onChanged!(_clamp(value + step))
                       : null,

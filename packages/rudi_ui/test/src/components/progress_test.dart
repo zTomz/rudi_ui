@@ -14,6 +14,7 @@ void main() {
             min: Duration.zero,
             max: const Duration(minutes: 10),
             semanticLabel: 'Duration',
+            semanticValueBuilder: (value) => '${value.inSeconds} seconds',
             onChanged: (value) => selected = value,
           ),
         ),

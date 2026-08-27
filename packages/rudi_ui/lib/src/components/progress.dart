@@ -4,6 +4,9 @@ import 'package:flutter/widgets.dart';
 
 import '../foundation/theme.dart';
 
+/// Creates a localized accessibility label for a duration value.
+typedef RudiDurationLabelBuilder = String Function(Duration value);
+
 /// A linear progress indicator with optional indeterminate animation.
 final class RudiLinearProgress extends StatefulWidget {
   /// Creates a linear progress indicator.
@@ -314,6 +317,7 @@ final class RudiDurationRuler extends StatelessWidget {
     required this.max,
     required this.onChanged,
     required this.semanticLabel,
+    required this.semanticValueBuilder,
     this.divisions,
     super.key,
   });
@@ -332,6 +336,9 @@ final class RudiDurationRuler extends StatelessWidget {
 
   /// Accessibility label.
   final String semanticLabel;
+
+  /// Creates localized accessibility values for the selected duration.
+  final RudiDurationLabelBuilder semanticValueBuilder;
 
   /// Optional number of discrete intervals.
   final int? divisions;
@@ -367,9 +374,9 @@ final class RudiDurationRuler extends StatelessWidget {
       slider: true,
       enabled: onChanged != null,
       label: semanticLabel,
-      value: '${value.inSeconds} seconds',
-      increasedValue: '${_valueForFraction(fraction + 0.05).inSeconds} seconds',
-      decreasedValue: '${_valueForFraction(fraction - 0.05).inSeconds} seconds',
+      value: semanticValueBuilder(value),
+      increasedValue: semanticValueBuilder(_valueForFraction(fraction + 0.05)),
+      decreasedValue: semanticValueBuilder(_valueForFraction(fraction - 0.05)),
       onIncrease: onChanged == null
           ? null
           : () => onChanged!(_valueForFraction(fraction + 0.05)),

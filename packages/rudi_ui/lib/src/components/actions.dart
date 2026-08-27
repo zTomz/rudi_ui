@@ -218,7 +218,7 @@ final class RudiButton extends StatelessWidget {
                 color: state.hovered
                     ? Color.lerp(background, foreground, 0.08)
                     : background,
-                borderRadius: BorderRadius.circular(theme.radii.lg),
+                borderRadius: BorderRadius.circular(theme.radii.pill),
                 border: Border.all(
                   color: borderColor,
                   width: state.focused ? 2 : 1,

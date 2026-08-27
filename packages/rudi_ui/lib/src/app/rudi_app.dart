@@ -94,7 +94,7 @@ final class RudiApp extends StatelessWidget {
       };
       var active = useDark ? dark : light;
       if (media?.highContrast ?? false) {
-        active = useDark
+        final contrastTheme = useDark
             ? RudiThemeData.dark(
                 accent: active.colors.accent,
                 highContrast: true,
@@ -105,6 +105,10 @@ final class RudiApp extends StatelessWidget {
                 highContrast: true,
                 feedback: active.feedback,
               );
+        active = active.copyWith(
+          colors: contrastTheme.colors,
+          highContrast: true,
+        );
       }
       final content = child ?? const SizedBox.shrink();
       return AnimatedRudiTheme(

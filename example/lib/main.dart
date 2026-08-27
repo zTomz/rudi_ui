@@ -128,6 +128,8 @@ final class _ShowcaseState extends State<_Showcase> {
               value: _number,
               min: 1,
               max: 10,
+              decreaseSemanticLabel: 'Decrease repeats',
+              increaseSemanticLabel: 'Increase repeats',
               onChanged: (value) => setState(() => _number = value.toInt()),
             ),
             const SizedBox(height: 24),
@@ -137,6 +139,7 @@ final class _ShowcaseState extends State<_Showcase> {
               max: const Duration(minutes: 30),
               divisions: 29,
               semanticLabel: 'Duration',
+              semanticValueBuilder: (value) => '${value.inMinutes} minutes',
               onChanged: (value) => setState(() => _duration = value),
             ),
             Text(

@@ -56,6 +56,8 @@ void main() {
           value: 2,
           min: 1,
           max: 3,
+          decreaseSemanticLabel: 'Decrease',
+          increaseSemanticLabel: 'Increase',
           onChanged: (next) => value = next,
         ),
       ),
