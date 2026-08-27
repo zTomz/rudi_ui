@@ -11,6 +11,8 @@ analyzer:
     missing_return: error
   exclude:
     - build/**
+    # The preview is a separate Flutter 3.47 app and has its own analysis job.
+    - preview/**
     - android/**
     - ios/**
     - web/**
