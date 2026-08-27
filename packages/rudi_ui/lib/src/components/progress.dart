@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
@@ -41,7 +42,7 @@ final class _RudiLinearProgressState extends State<RudiLinearProgress>
   void initState() {
     super.initState();
     if (widget.value == null) {
-      _controller.repeat();
+      unawaited(_controller.repeat());
     }
   }
 
@@ -49,7 +50,7 @@ final class _RudiLinearProgressState extends State<RudiLinearProgress>
   void didUpdateWidget(RudiLinearProgress oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value == null && !_controller.isAnimating) {
-      _controller.repeat();
+      unawaited(_controller.repeat());
     } else if (widget.value != null && _controller.isAnimating) {
       _controller.stop();
     }

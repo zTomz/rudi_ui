@@ -373,10 +373,12 @@ final class _RudiHoldToConfirmState extends State<RudiHoldToConfirm>
       widget.onConfirmed!();
       return;
     }
-    _controller.forward(from: 0);
+    unawaited(_controller.forward(from: 0));
   }
 
-  void _cancel() => _controller.reverse();
+  void _cancel() {
+    unawaited(_controller.reverse());
+  }
 
   @override
   Widget build(BuildContext context) {

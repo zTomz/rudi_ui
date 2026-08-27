@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import '../foundation/theme.dart';
@@ -250,9 +252,9 @@ final class _RudiExpandableControlState extends State<RudiExpandableControl>
     if (MediaQuery.disableAnimationsOf(context)) {
       _controller.value = _expanded ? 1 : 0;
     } else if (_expanded) {
-      _controller.forward();
+      unawaited(_controller.forward());
     } else {
-      _controller.reverse();
+      unawaited(_controller.reverse());
     }
     widget.onExpandedChanged?.call(_expanded);
   }
