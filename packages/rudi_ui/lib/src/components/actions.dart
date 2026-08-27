@@ -219,10 +219,9 @@ final class RudiButton extends StatelessWidget {
                     ? Color.lerp(background, foreground, 0.08)
                     : background,
                 borderRadius: BorderRadius.circular(theme.radii.pill),
-                border: Border.all(
-                  color: borderColor,
-                  width: state.focused ? 2 : 1,
-                ),
+                border: state.focused
+                    ? Border.all(color: borderColor, width: 2)
+                    : null,
               ),
               child: Row(
                 mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
