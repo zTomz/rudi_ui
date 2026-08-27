@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rudi_ui/rudi_ui.dart';
 
 void main() {
-  testWidgets('duration ruler updates from pointer position', (tester) async {
+  testWidgets('duration ruler scrolls and snaps like the Loop control', (
+    tester,
+  ) async {
     Duration? selected;
     await tester.pumpWidget(
       _TestApp(
@@ -22,10 +24,12 @@ void main() {
     );
 
     final ruler = find.byType(RudiDurationRuler);
-    await tester.tapAt(tester.getTopLeft(ruler) + const Offset(225, 32));
+    expect(tester.getSize(ruler).height, 72);
+    await tester.drag(ruler, const Offset(-140, 0));
+    await tester.pumpAndSettle();
 
     expect(selected, isNotNull);
-    expect(selected!.inSeconds, closeTo(450, 15));
+    expect(selected!.inSeconds, greaterThan(300));
   });
 
   testWidgets('progress widgets support large text scale without overflow', (

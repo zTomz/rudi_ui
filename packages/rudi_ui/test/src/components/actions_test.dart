@@ -50,12 +50,85 @@ void main() {
     );
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.text('Hold')),
+      tester.getCenter(find.byKey(const ValueKey('hold-to-confirm-button'))),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
     await gesture.up();
 
+    expect(confirmed, isTrue);
+  });
+
+  testWidgets('Loop interaction controls preserve their original geometry', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _TestApp(
+        child: SizedBox(
+          width: 360,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RudiHoldToConfirm(
+                label: 'Hold',
+                icon: const RudiGlyph(RudiGlyphType.close),
+                onConfirmed: () {},
+              ),
+              const SizedBox(height: 16),
+              RudiSwipeAction(
+                label: 'Swipe',
+                thumb: const RudiGlyph(RudiGlyphType.chevron),
+                onConfirmed: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byKey(const ValueKey('hold-to-confirm-button'))),
+      const Size(360, 56),
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('swipe-thumb'))),
+      const Size(56, 56),
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('swipe-thumb-fade'))),
+      const Size(56, 56),
+    );
+    expect(tester.getSize(find.byType(RudiSwipeAction)), const Size(360, 72));
+  });
+
+  testWidgets('RudiSwipeAction completes only at the configured end', (
+    tester,
+  ) async {
+    var confirmed = false;
+    await tester.pumpWidget(
+      _TestApp(
+        child: SizedBox(
+          width: 360,
+          child: RudiSwipeAction(
+            label: 'Swipe',
+            thumb: const RudiGlyph(RudiGlyphType.chevron),
+            onConfirmed: () => confirmed = true,
+          ),
+        ),
+      ),
+    );
+
+    final thumb = find.byKey(const ValueKey('swipe-thumb'));
+    final partial = await tester.startGesture(tester.getCenter(thumb));
+    await partial.moveBy(const Offset(180, 0));
+    await partial.up();
+    await tester.pumpAndSettle();
+    expect(confirmed, isFalse);
+
+    final complete = await tester.startGesture(tester.getCenter(thumb));
+    await complete.moveBy(const Offset(300, 0));
+    await complete.up();
+    await tester.pumpAndSettle();
     expect(confirmed, isTrue);
   });
 }

@@ -1,6 +1,7 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:device_preview/presets.dart';
 import 'package:flutter/widgets.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:rudi_ui/rudi_ui.dart';
 
 void main() {
@@ -26,15 +27,34 @@ final class _RudiPreviewAppState extends State<RudiPreviewApp> {
 
   @override
   Widget build(BuildContext context) {
+    final light = _previewTheme(RudiThemeData.light());
+    final dark = _previewTheme(RudiThemeData.dark());
     return RudiApp(
       title: 'Rudi UI — Component Lab',
       themeMode: _themeMode,
+      theme: light,
+      darkTheme: dark,
       home: _ComponentLab(
         themeMode: _themeMode,
         onThemeModeChanged: (value) => setState(() => _themeMode = value),
       ),
     );
   }
+}
+
+RudiThemeData _previewTheme(RudiThemeData base) {
+  TextStyle body(TextStyle style) => GoogleFonts.googleSans(textStyle: style);
+  TextStyle display(TextStyle style) => GoogleFonts.unbounded(textStyle: style);
+  return base.copyWith(
+    text: base.text.copyWith(
+      display: display(base.text.display),
+      headline: display(base.text.headline),
+      title: display(base.text.title),
+      body: body(base.text.body),
+      label: body(base.text.label),
+      caption: body(base.text.caption),
+    ),
+  );
 }
 
 final class _ComponentLab extends StatefulWidget {
@@ -305,7 +325,7 @@ final class _LabHero extends StatelessWidget {
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Text(
-              'A font-independent, accessible component system built without Material or Cupertino UI.',
+              'A font-independent, accessible component system built without Material or Cupertino UI. This lab injects Google Fonts separately.',
               style: theme.text.body.copyWith(
                 color: theme.colors.mutedForeground,
               ),
@@ -426,6 +446,38 @@ final class _ActionSection extends StatelessWidget {
                     onPressed: () => Navigator.of(dialogContext).pop(),
                   ),
                 ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          RudiButton(
+            label: 'Open bottom sheet',
+            variant: RudiButtonVariant.subtle,
+            onPressed: () => showRudiBottomSheet<void>(
+              context: context,
+              barrierLabel: 'Dismiss bottom sheet',
+              builder: (sheetContext) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'A native Rudi surface',
+                      style: sheetContext.rudiTheme.text.headline,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Drag the sheet down, use Escape or tap the barrier to dismiss it.',
+                      style: sheetContext.rudiTheme.text.body,
+                    ),
+                    const SizedBox(height: 24),
+                    RudiButton(
+                      label: 'Done',
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -640,11 +692,16 @@ final class _GestureSection extends StatelessWidget {
         builder: (context, constraints) {
           final hold = RudiHoldToConfirm(
             label: 'Hold to confirm',
+            icon: const RudiGlyph(RudiGlyphType.close),
+            semanticHint: 'Press and hold to confirm',
             onConfirmed: confirmed,
           );
           final swipe = RudiSwipeAction(
             label: 'Swipe to finish',
             thumb: const RudiGlyph(RudiGlyphType.chevron),
+            semanticHint: 'Swipe right to confirm',
+            completedSemanticHint: 'Completed',
+            loadingSemanticHint: 'Loading',
             onConfirmed: confirmed,
           );
           if (constraints.maxWidth >= 760) {

@@ -45,4 +45,19 @@ void main() {
     expect(actions.dx, lessThan(typography.dx));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('component lab exposes the bottom sheet example', (tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const RudiPreviewApp());
+    await tester.tap(find.text('Open bottom sheet'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('A native Rudi surface'), findsOneWidget);
+    expect(find.text('Done'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

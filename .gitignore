@@ -1,10 +1,10 @@
 .dart_tool/
 .idea/
 .packages
+.flutter-plugins-dependencies
 build/
 coverage/
 doc/api/
 *.iml
 *.lock
 !pubspec.lock
-
