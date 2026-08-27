@@ -334,7 +334,7 @@ packages:
   rudi_ui:
     dependency: "direct main"
     description:
-      path: "../packages/rudi_ui"
+      path: ".."
       relative: true
     source: path
     version: "0.1.0"

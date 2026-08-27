@@ -38,13 +38,13 @@ void main() {
   testWidgets('RudiHoldToConfirm completes after configured duration', (
     tester,
   ) async {
-    var confirmed = false;
+    var confirmations = 0;
     await tester.pumpWidget(
       _TestApp(
         child: RudiHoldToConfirm(
           label: 'Hold',
           duration: const Duration(milliseconds: 300),
-          onConfirmed: () => confirmed = true,
+          onConfirmed: () => confirmations++,
         ),
       ),
     );
@@ -56,7 +56,21 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
     await gesture.up();
 
-    expect(confirmed, isTrue);
+    expect(confirmations, 1);
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(find.byKey(const ValueKey('hold-to-confirm-fill'))).width,
+      0,
+    );
+
+    final secondGesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('hold-to-confirm-button'))),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await secondGesture.up();
+    await tester.pumpAndSettle();
+    expect(confirmations, 2);
   });
 
   testWidgets('Loop interaction controls preserve their original geometry', (
@@ -104,7 +118,7 @@ void main() {
   testWidgets('RudiSwipeAction completes only at the configured end', (
     tester,
   ) async {
-    var confirmed = false;
+    var confirmations = 0;
     await tester.pumpWidget(
       _TestApp(
         child: SizedBox(
@@ -112,24 +126,32 @@ void main() {
           child: RudiSwipeAction(
             label: 'Swipe',
             thumb: const RudiGlyph(RudiGlyphType.chevron),
-            onConfirmed: () => confirmed = true,
+            onConfirmed: () => confirmations++,
           ),
         ),
       ),
     );
 
     final thumb = find.byKey(const ValueKey('swipe-thumb'));
+    final initialThumbLeft = tester.getTopLeft(thumb).dx;
     final partial = await tester.startGesture(tester.getCenter(thumb));
     await partial.moveBy(const Offset(180, 0));
     await partial.up();
     await tester.pumpAndSettle();
-    expect(confirmed, isFalse);
+    expect(confirmations, 0);
 
     final complete = await tester.startGesture(tester.getCenter(thumb));
     await complete.moveBy(const Offset(300, 0));
     await complete.up();
     await tester.pumpAndSettle();
-    expect(confirmed, isTrue);
+    expect(confirmations, 1);
+    expect(tester.getTopLeft(thumb).dx, initialThumbLeft);
+
+    final secondComplete = await tester.startGesture(tester.getCenter(thumb));
+    await secondComplete.moveBy(const Offset(300, 0));
+    await secondComplete.up();
+    await tester.pumpAndSettle();
+    expect(confirmations, 2);
   });
 }
 

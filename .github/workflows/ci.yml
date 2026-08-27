@@ -19,9 +19,15 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed packages example tool
+      - run: flutter pub get
+        working-directory: example
+      - run: dart format --output=none --set-exit-if-changed lib test example tool
       - run: dart analyze --fatal-infos
-      - run: flutter test packages/rudi_ui/test example/test
+      - run: dart analyze --fatal-infos
+        working-directory: example
+      - run: flutter test
+      - run: flutter test
+        working-directory: example
       - run: dart run tool/check_import_boundaries.dart
       # Dartdoc 9.0.6 bundled with Flutter 3.47 currently crashes while
       # processing Flutter's own @docImport comments. Keep documentation
@@ -31,9 +37,8 @@ jobs:
       - if: matrix.flutter-version == '3.47.0'
         run: dart pub global activate pana
       - if: matrix.flutter-version == '3.47.0'
-        run: pana --no-warning packages/rudi_ui
+        run: pana --no-warning .
       - run: dart pub publish --dry-run
-        working-directory: packages/rudi_ui
 
   build:
     strategy:

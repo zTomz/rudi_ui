@@ -381,9 +381,26 @@ final class _RudiHoldToConfirmState extends State<RudiHoldToConfirm>
     widget.onHapticCompleted?.call();
     unawaited(context.rudiTheme.feedback.confirmation());
     widget.onConfirmed!();
-    if (mounted) {
-      setState(() {});
+    if (!mounted) {
+      return;
     }
+    setState(() {});
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 0;
+      setState(() => _isCompleted = false);
+      return;
+    }
+    _controller
+        .animateBack(
+          0,
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOut,
+        )
+        .whenCompleteOrCancel(() {
+          if (mounted) {
+            setState(() => _isCompleted = false);
+          }
+        });
   }
 
   @override
@@ -768,9 +785,37 @@ final class _RudiSwipeActionState extends State<RudiSwipeAction>
     }
     _callbackPending = false;
     widget.onConfirmed?.call();
-    if (widget.completed != null && mounted) {
-      setState(() => _isCompleting = false);
+    if (!mounted) {
+      return;
     }
+    if (widget.completed != null) {
+      setState(() => _isCompleting = false);
+    } else {
+      _resetAfterCompletion();
+    }
+  }
+
+  void _resetAfterCompletion() {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.value = 0;
+      setState(() => _internalCompleted = false);
+      return;
+    }
+    _controller
+        .animateWith(
+          SpringSimulation(
+            const SpringDescription(mass: 1, stiffness: 440, damping: 34),
+            _controller.value,
+            0,
+            0,
+            snapToEnd: true,
+          ),
+        )
+        .whenCompleteOrCancel(() {
+          if (mounted) {
+            setState(() => _internalCompleted = false);
+          }
+        });
   }
 
   void _springBack({double velocity = 0}) {

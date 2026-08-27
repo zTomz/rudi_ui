@@ -16,7 +16,7 @@ const _forbiddenImports = <String>[
 
 void main() {
   final violations = <String>[];
-  final roots = <Directory>[Directory('packages/rudi_ui/lib')];
+  final roots = <Directory>[Directory('lib')];
 
   for (final root in roots) {
     if (!root.existsSync()) {

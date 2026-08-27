@@ -4,16 +4,36 @@ Rudi UI is an independent, opinionated Flutter design system built on the
 framework's core widget libraries. It does not depend on Material UI or
 Cupertino UI.
 
-The repository contains:
-
-- `rudi_ui`: the dependency-free design system core;
-- `example`: a minimal widgets-only package example;
-- `preview`: the Flutter 3.47 web component and device lab.
+The repository root is the publishable `rudi_ui` package. It also contains a
+minimal widgets-only `example` and the Flutter 3.47 `preview` web app.
 
 The packages currently target Flutter 3.44 or newer and Dart 3.12 or newer.
 Rudi UI deliberately ships no font files and names no font family. Consuming
 applications own their typography assets and licensing. The packages are under
 active development toward a stable 1.0 API.
+
+## Usage
+
+```yaml
+dependencies:
+  rudi_ui: ^0.1.0
+```
+
+```dart
+import 'package:flutter/widgets.dart';
+import 'package:rudi_ui/rudi_ui.dart';
+
+void main() => runApp(
+  RudiApp(
+    title: 'Example',
+    home: RudiPage(
+      child: Center(
+        child: RudiButton(label: 'Continue', onPressed: () {}),
+      ),
+    ),
+  ),
+);
+```
 
 ## Live preview
 
@@ -28,10 +48,11 @@ the font files are part of the published `rudi_ui` package.
 
 ```shell
 flutter pub get
-dart format --output=none --set-exit-if-changed packages example
+dart format --output=none --set-exit-if-changed lib test example tool
 dart analyze --fatal-infos
-flutter test packages/rudi_ui/test
+flutter test
 dart run tool/check_import_boundaries.dart
 ```
 
-See [packages/rudi_ui/README.md](packages/rudi_ui/README.md) for usage.
+Rudi UI uses the platform font by default. Applications can inject licensed
+font families through the immutable `RudiTextTheme` roles.
