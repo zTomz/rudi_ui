@@ -1,0 +1,22 @@
+name: rudi_ui_example
+description: Widgets-only component showcase for Rudi UI.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  rudi_ui: ^0.1.0
+  rudi_ui_fonts: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+

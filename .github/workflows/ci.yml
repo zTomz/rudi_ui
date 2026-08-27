@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    strategy:
+      matrix:
+        flutter-version: ['3.44.0', '3.47.0']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed packages example tool
+      - run: dart analyze --fatal-infos
+      - run: flutter test packages/rudi_ui/test example/test
+      - run: dart run tool/check_import_boundaries.dart
+      # Dartdoc 9.0.6 bundled with Flutter 3.47 currently crashes while
+      # processing Flutter's own @docImport comments. Keep documentation
+      # validation on the minimum supported SDK until that upstream issue is fixed.
+      - if: matrix.flutter-version == '3.44.0'
+        run: dart doc
+      - if: matrix.flutter-version == '3.47.0'
+        run: dart pub global activate pana
+      - if: matrix.flutter-version == '3.47.0'
+        run: pana --no-warning packages/rudi_ui
+      - run: dart pub publish --dry-run
+        working-directory: packages/rudi_ui
+      - run: dart pub publish --dry-run
+        working-directory: packages/rudi_ui_fonts
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            command: flutter build web --release
+          - runner: ubuntu-latest
+            command: flutter build apk --debug
+          - runner: windows-latest
+            command: flutter build windows --debug
+          - runner: macos-latest
+            command: flutter build macos --debug
+          - runner: macos-latest
+            command: flutter build ios --debug --no-codesign
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        working-directory: example
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: ${{ matrix.command }}
+
+  build-linux:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: example
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+        working-directory: .
+      - run: flutter pub get
+      - run: flutter build linux --debug

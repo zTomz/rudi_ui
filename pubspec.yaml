@@ -1,0 +1,14 @@
+name: rudi_ui_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+workspace:
+  - packages/rudi_ui
+  - packages/rudi_ui_fonts
+  - example
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
