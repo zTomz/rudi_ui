@@ -34,8 +34,6 @@ jobs:
         run: pana --no-warning packages/rudi_ui
       - run: dart pub publish --dry-run
         working-directory: packages/rudi_ui
-      - run: dart pub publish --dry-run
-        working-directory: packages/rudi_ui_fonts
 
   build:
     strategy:
@@ -65,6 +63,23 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: ${{ matrix.command }}
+
+  verify-preview:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: preview
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: dart analyze --fatal-infos
+      - run: flutter test
 
   build-linux:
     runs-on: ubuntu-latest

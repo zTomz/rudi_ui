@@ -1,0 +1,22 @@
+name: rudi_ui_preview
+description: Interactive web component lab for Rudi UI.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  device_preview: ^3.0.0
+  flutter:
+    sdk: flutter
+  rudi_ui:
+    path: ../packages/rudi_ui
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:

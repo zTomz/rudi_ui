@@ -7,11 +7,19 @@ Cupertino UI.
 The repository contains:
 
 - `rudi_ui`: the dependency-free design system core;
-- `rudi_ui_fonts`: optional Google Sans and Unbounded typography assets;
-- `example`: a widgets-only component showcase.
+- `example`: a widgets-only component showcase and device lab.
 
 The packages currently target Flutter 3.44 or newer and Dart 3.12 or newer.
-They are under active development toward a stable 1.0 API.
+Rudi UI deliberately ships no font files and names no font family. Consuming
+applications own their typography assets and licensing. The packages are under
+active development toward a stable 1.0 API.
+
+## Live preview
+
+The interactive component catalog is deployed to
+[ztomz.github.io/rudi_ui](https://ztomz.github.io/rudi_ui/). Its device lab uses
+`device_preview` presets to switch between representative phones, tablets and
+desktop windows.
 
 ## Development
 
@@ -19,9 +27,8 @@ They are under active development toward a stable 1.0 API.
 flutter pub get
 dart format --output=none --set-exit-if-changed packages example
 dart analyze --fatal-infos
-flutter test
+flutter test packages/rudi_ui/test
 dart run tool/check_import_boundaries.dart
 ```
 
 See [packages/rudi_ui/README.md](packages/rudi_ui/README.md) for usage.
-

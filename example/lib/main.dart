@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:rudi_ui/rudi_ui.dart';
-import 'package:rudi_ui_fonts/rudi_ui_fonts.dart';
 
 void main() => runApp(const RudiShowcaseApp());
 
@@ -20,8 +19,6 @@ final class _RudiShowcaseAppState extends State<RudiShowcaseApp> {
   Widget build(BuildContext context) {
     return RudiApp(
       title: 'Rudi UI',
-      theme: RudiThemeData.light().withRudiFonts(),
-      darkTheme: RudiThemeData.dark().withRudiFonts(),
       themeMode: _themeMode,
       home: _Showcase(
         themeMode: _themeMode,

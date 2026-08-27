@@ -21,6 +21,19 @@ void main() => runApp(
 );
 ```
 
-Use `rudi_ui_fonts` when the complete branded Google Sans and Unbounded
-typography is desired. Without it, Rudi UI uses the platform system font.
+Rudi UI does not bundle or name any font family. It uses the platform font by
+default. Applications can provide licensed font assets themselves and map them
+onto the immutable `RudiTextTheme` roles with `copyWith`.
 
+Explore the components in the
+[interactive device lab](https://ztomz.github.io/rudi_ui/).
+
+```dart
+final base = RudiThemeData.light();
+final branded = base.copyWith(
+  text: base.text.copyWith(
+    display: base.text.display.copyWith(fontFamily: 'MyDisplayFont'),
+    body: base.text.body.copyWith(fontFamily: 'MyBodyFont'),
+  ),
+);
+```

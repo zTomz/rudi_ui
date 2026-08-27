@@ -169,7 +169,6 @@ final class _RudiErrorViewState extends State<RudiErrorView> {
                   details,
                   style: theme.text.caption.copyWith(
                     color: theme.colors.mutedForeground,
-                    fontFamily: 'monospace',
                   ),
                 ),
               ],

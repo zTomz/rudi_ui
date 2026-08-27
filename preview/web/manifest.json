@@ -1,0 +1,10 @@
+{
+  "name": "Rudi UI Component Lab",
+  "short_name": "Rudi UI",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#111214",
+  "theme_color": "#128FE2",
+  "description": "Interactive component and device preview for Rudi UI.",
+  "orientation": "any"
+}
