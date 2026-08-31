@@ -9,7 +9,7 @@ jobs:
   verify:
     strategy:
       matrix:
-        flutter-version: ['3.44.0', '3.47.0']
+        flutter-version: ['3.47.0']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,11 +29,7 @@ jobs:
       - run: flutter test
         working-directory: example
       - run: dart run tool/check_import_boundaries.dart
-      # Dartdoc 9.0.6 bundled with Flutter 3.47 currently crashes while
-      # processing Flutter's own @docImport comments. Keep documentation
-      # validation on the minimum supported SDK until that upstream issue is fixed.
-      - if: matrix.flutter-version == '3.44.0'
-        run: dart doc
+      # Dartdoc on Flutter 3.47 has an upstream @docImport failure; restore the doc job when fixed.
       - if: matrix.flutter-version == '3.47.0'
         run: dart pub global activate pana
       - if: matrix.flutter-version == '3.47.0'

@@ -31,8 +31,10 @@ final class RudiInteractionState {
 }
 
 /// Builds the content of a [RudiPressable] from its interaction state.
-typedef RudiPressableBuilder =
-    Widget Function(BuildContext context, RudiInteractionState state);
+typedef RudiPressableBuilder = Widget Function(
+  BuildContext context,
+  RudiInteractionState state,
+);
 
 /// A platform-neutral accessible interaction primitive.
 final class RudiPressable extends StatefulWidget {
@@ -44,6 +46,7 @@ final class RudiPressable extends StatefulWidget {
     this.semanticLabel,
     this.autofocus = false,
     this.enableFeedback = true,
+    this.ink = false,
     this.cursor = SystemMouseCursors.click,
     super.key,
   });
@@ -66,6 +69,9 @@ final class RudiPressable extends StatefulWidget {
   /// Whether the active [RudiFeedbackPolicy] may emit feedback.
   final bool enableFeedback;
 
+  /// Paints a clipped ripple above the content when activated.
+  final bool ink;
+
   /// Mouse cursor used while enabled.
   final MouseCursor cursor;
 
@@ -73,10 +79,40 @@ final class RudiPressable extends StatefulWidget {
   State<RudiPressable> createState() => _RudiPressableState();
 }
 
-final class _RudiPressableState extends State<RudiPressable> {
+final class _RudiPressableState extends State<RudiPressable>
+    with TickerProviderStateMixin {
   bool _hovered = false;
   bool _focused = false;
   bool _pressed = false;
+  AnimationController? _inkRadius;
+  AnimationController? _inkOpacity;
+  Offset? _inkOrigin;
+
+  void _beginInk(Offset? origin) {
+    if (!widget.ink || MediaQuery.disableAnimationsOf(context)) return;
+    _inkRadius ??= AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _inkOpacity ??= AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    );
+    setState(() => _inkOrigin = origin);
+    _inkOpacity!.value = 1;
+    unawaited(_inkRadius!.forward(from: 0));
+  }
+
+  void _endInk() {
+    if (_inkOpacity != null) unawaited(_inkOpacity!.reverse());
+  }
+
+  @override
+  void dispose() {
+    _inkRadius?.dispose();
+    _inkOpacity?.dispose();
+    super.dispose();
+  }
 
   bool get _enabled => widget.onPressed != null;
 
@@ -117,6 +153,8 @@ final class _RudiPressableState extends State<RudiPressable> {
         actions: <Type, Action<Intent>>{
           ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) {
+              _beginInk(null);
+              _endInk();
               _activate();
               return null;
             },
@@ -126,14 +164,92 @@ final class _RudiPressableState extends State<RudiPressable> {
           behavior: HitTestBehavior.opaque,
           onTap: _enabled ? _activate : null,
           onLongPress: _enabled ? widget.onLongPress : null,
-          onTapDown: _enabled ? (_) => _setPressed(true) : null,
-          onTapUp: _enabled ? (_) => _setPressed(false) : null,
-          onTapCancel: _enabled ? () => _setPressed(false) : null,
-          child: widget.builder(context, state),
+          onTapDown: _enabled
+              ? (details) {
+                  _beginInk(details.localPosition);
+                  _setPressed(true);
+                }
+              : null,
+          onTapUp: _enabled
+              ? (_) {
+                  _endInk();
+                  _setPressed(false);
+                }
+              : null,
+          onTapCancel: _enabled
+              ? () {
+                  _endInk();
+                  _setPressed(false);
+                }
+              : null,
+          child: CustomPaint(
+            foregroundPainter: widget.ink && _enabled
+                ? _RudiInkPainter(
+                    radius: _inkRadius,
+                    opacity: _inkOpacity,
+                    origin: _inkOrigin,
+                    color: context.rudiTheme.colors.foreground,
+                    reduced: MediaQuery.disableAnimationsOf(context),
+                    pressed: _pressed,
+                  )
+                : null,
+            child: widget.builder(context, state),
+          ),
         ),
       ),
     );
   }
+}
+
+final class _RudiInkPainter extends CustomPainter {
+  _RudiInkPainter({
+    required this.radius,
+    required this.opacity,
+    required this.origin,
+    required this.color,
+    required this.reduced,
+    required this.pressed,
+  }) : super(repaint: Listenable.merge([radius, opacity]));
+
+  final Animation<double>? radius;
+  final Animation<double>? opacity;
+  final Offset? origin;
+  final Color color;
+  final bool reduced;
+  final bool pressed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final alpha = reduced ? (pressed ? 1.0 : 0.0) : opacity?.value ?? 0;
+    if (alpha == 0) return;
+    final bounds = Offset.zero & size;
+    final paint = Paint()..color = color.withValues(alpha: .12 * alpha);
+    if (reduced) {
+      canvas.drawRect(bounds, paint);
+      return;
+    }
+    final center = origin ?? size.center(Offset.zero);
+    final extent = [
+      bounds.topLeft,
+      bounds.topRight,
+      bounds.bottomLeft,
+      bounds.bottomRight,
+    ].map((corner) => (corner - center).distance).reduce(math.max);
+    final progress = Curves.easeOutCubic.transform(radius?.value ?? 0);
+    canvas.save();
+    canvas.clipRect(bounds);
+    canvas.drawCircle(center, extent * (.12 + .88 * progress), paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_RudiInkPainter oldDelegate) =>
+      radius != oldDelegate.radius ||
+      opacity != oldDelegate.opacity ||
+      origin != oldDelegate.origin ||
+      color != oldDelegate.color ||
+      reduced != oldDelegate.reduced ||
+      pressed != oldDelegate.pressed;
 }
 
 /// Visual variants supported by [RudiButton].

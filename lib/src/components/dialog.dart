@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import '../foundation/theme.dart';
 
+export 'bottom_sheet.dart' show showRudiBottomSheet;
+
 /// Shows a modal Rudi dialog.
 Future<T?> showRudiDialog<T>({
   required BuildContext context,
@@ -170,100 +172,6 @@ final class RudiDialog extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
-}
-
-/// Shows a modal Rudi bottom sheet.
-Future<T?> showRudiBottomSheet<T>({
-  required BuildContext context,
-  required WidgetBuilder builder,
-  required String barrierLabel,
-  bool barrierDismissible = true,
-  bool useRootNavigator = true,
-}) {
-  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
-  final themes = InheritedTheme.capture(from: context, to: navigator.context);
-  return navigator.push<T>(
-    _RudiBottomSheetRoute<T>(
-      builder: builder,
-      themes: themes,
-      barrierLabel: barrierLabel,
-      barrierDismissible: barrierDismissible,
-      barrierColor: context.rudiTheme.colors.scrim,
-      animationsDisabled: MediaQuery.disableAnimationsOf(context),
-    ),
-  );
-}
-
-final class _RudiBottomSheetRoute<T> extends PopupRoute<T> {
-  _RudiBottomSheetRoute({
-    required this.builder,
-    required this.themes,
-    required this._barrierLabel,
-    required this._barrierDismissible,
-    required this._barrierColor,
-    required this.animationsDisabled,
-  });
-
-  final WidgetBuilder builder;
-  final CapturedThemes themes;
-  final bool animationsDisabled;
-  final String _barrierLabel;
-  final bool _barrierDismissible;
-  final Color _barrierColor;
-
-  @override
-  Color? get barrierColor => _barrierColor;
-
-  @override
-  bool get barrierDismissible => _barrierDismissible;
-
-  @override
-  String? get barrierLabel => _barrierLabel;
-
-  @override
-  Duration get transitionDuration =>
-      animationsDisabled ? Duration.zero : const Duration(milliseconds: 300);
-
-  @override
-  Duration get reverseTransitionDuration =>
-      animationsDisabled ? Duration.zero : const Duration(milliseconds: 200);
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return themes.wrap(
-      Align(
-        alignment: Alignment.bottomCenter,
-        child: RudiBottomSheet(
-          onDismissed: barrierDismissible ? () => navigator?.pop() : null,
-          child: builder(context),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget buildTransitions(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    final curved = CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutCubic,
-    );
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(0, 1),
-        end: Offset.zero,
-      ).animate(curved),
-      child: child,
     );
   }
 }

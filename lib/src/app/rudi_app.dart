@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../components/overlays.dart';
@@ -123,7 +124,17 @@ final class RudiApp extends StatelessWidget {
               style: context.rudiTheme.text.body,
               child: IconTheme(
                 data: IconThemeData(color: context.rudiTheme.colors.foreground),
-                child: RudiMessenger(child: themedChild),
+                child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value:
+                      (useDark
+                              ? SystemUiOverlayStyle.light
+                              : SystemUiOverlayStyle.dark)
+                          .copyWith(
+                            statusBarColor: const Color(0x00000000),
+                            systemNavigationBarColor: active.colors.background,
+                          ),
+                  child: RudiMessenger(child: themedChild),
+                ),
               ),
             );
           },

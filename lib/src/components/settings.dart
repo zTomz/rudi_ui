@@ -102,12 +102,16 @@ final class RudiSettingsTile extends StatelessWidget {
       selected: selected,
       child: RudiPressable(
         onPressed: onPressed,
+        ink: true,
         builder: (context, state) => AnimatedContainer(
           duration: MediaQuery.disableAnimationsOf(context)
               ? Duration.zero
               : theme.motion.fast,
-          constraints: const BoxConstraints(minHeight: 64),
-          padding: EdgeInsets.all(theme.spacing.md),
+          constraints: const BoxConstraints(minHeight: 60),
+          padding: EdgeInsets.symmetric(
+            horizontal: theme.spacing.md,
+            vertical: 12,
+          ),
           color: selected || state.hovered
               ? theme.colors.surface
               : const Color(0x00000000),
@@ -301,4 +305,115 @@ final class _RudiExpandableControlState extends State<RudiExpandableControl>
       ],
     );
   }
+}
+
+/// Loop's separated rows, grouped outer corners, accent label and bold titles.
+final class const RudiSettingsGroup({
+  final String? title,
+  required final List<Widget> children,
+  super.key,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.rudiTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (title != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, bottom: 12),
+            child: Text(
+              title!,
+              style: theme.text.label.copyWith(
+                color: theme.colors.accent,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        for (final (index, child) in children.indexed) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(index == 0 ? 28 : 5),
+              bottom: Radius.circular(index == children.length - 1 ? 28 : 5),
+            ),
+            child: ColoredBox(
+              color: theme.colors.surface,
+              child: RudiTheme(
+                data: theme.copyWith(
+                  text: RudiTextTheme(
+                    display: theme.text.display,
+                    headline: theme.text.headline,
+                    title: theme.text.title,
+                    body: theme.text.body,
+                    label: theme.text.label.copyWith(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    caption: theme.text.caption,
+                  ),
+                ),
+                child: child,
+              ),
+            ),
+          ),
+          if (index < children.length - 1) const SizedBox(height: 3),
+        ],
+      ],
+    );
+  }
+}
+
+final class const _RudiSwitchIndicator(final bool value)
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.rudiTheme,
+        reduced = MediaQuery.disableAnimationsOf(context);
+    return AnimatedContainer(
+      duration: reduced ? Duration.zero : theme.motion.normal,
+      curve: theme.motion.standardCurve,
+      width: 50,
+      height: 30,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: value ? theme.colors.foreground : theme.colors.outline,
+      ),
+      child: AnimatedAlign(
+        alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+        duration: reduced ? Duration.zero : theme.motion.normal,
+        curve: Curves.easeOutQuart,
+        child: Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: theme.colors.background,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A setting row with a single accessible toggle target and animated indicator.
+final class const RudiSwitchTile({
+  required final String title,
+  required final bool value,
+  required final ValueChanged<bool>? onChanged,
+  final String? subtitle,
+  final Widget? leading,
+  super.key,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Semantics(
+    toggled: value,
+    child: RudiSettingsTile(
+      title: title,
+      subtitle: subtitle,
+      leading: leading,
+      onPressed: onChanged == null ? null : () => onChanged!(!value),
+      trailing: _RudiSwitchIndicator(value),
+    ),
+  );
 }

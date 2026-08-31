@@ -449,14 +449,11 @@ final class _AnimatedRudiThemeState
 
   @override
   void forEachTween(TweenVisitor<dynamic> visitor) {
-    _data =
-        visitor(
-              _data,
-              widget.data,
-              (dynamic value) =>
-                  _RudiThemeDataTween(begin: value as RudiThemeData),
-            )
-            as Tween<RudiThemeData>?;
+    _data = visitor(
+      _data,
+      widget.data,
+      (dynamic value) => _RudiThemeDataTween(begin: value as RudiThemeData),
+    ) as Tween<RudiThemeData>?;
   }
 
   @override
