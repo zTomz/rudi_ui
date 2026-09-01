@@ -4,6 +4,7 @@ library;
 export 'src/app/rudi_app.dart';
 export 'src/components/actions.dart';
 export 'src/components/bottom_sheet.dart';
+export 'src/components/calendar.dart';
 export 'src/components/dialog.dart';
 export 'src/components/feedback_views.dart';
 export 'src/components/fields.dart';

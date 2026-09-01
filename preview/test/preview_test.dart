@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rudi_ui/rudi_ui.dart';
 import 'package:rudi_ui_preview/main.dart';
 
 void main() {
@@ -50,6 +51,24 @@ void main() {
 
     expect(find.text('A native Rudi surface'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('preview catalog includes the interactive calendar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const RudiPreviewApp());
+    await tester.tap(find.byKey(const ValueKey('nav-1')).last);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byType(RudiCalendar).last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('A month that moves naturally.'), findsWidgets);
+    expect(find.byType(RudiCalendar), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }

@@ -11,6 +11,7 @@
 - Allows app-owned icon sets through the optional bottom-sheet closeIcon widget.
 - Refines bottom sheets with header dragging, spring return, optional title/close control, safe keyboard insets and an internally scrollable body.
 - Makes system-bar icon brightness follow the app theme.
+- Adds a localized, swipeable RudiCalendar with accessible day states and full-cell touch targets.
 - Adds regression coverage for rapid navigation, drag cancellation, reduced motion and keyboard insets.
 
 ## 0.1.0

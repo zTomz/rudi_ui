@@ -69,6 +69,7 @@ The 0.2 changes are local and not yet published. Consume this checkout using a p
 - `RudiPage.navigation`: automatically centers navigation above the bottom safe area as a floating overlay.
 - `RudiPressable(ink: true)`: opt-in ripple painted above the content, clipped to the control bounds, with gesture cancellation and reduced-motion feedback. Settings tiles enable it by default; enclosing rounded groups also clip the ink to their corners.
 - `RudiSettingsGroup` and `RudiSwitchTile`: separated setting rows with grouped outer corners and a single accessible toggle target.
+- `RudiCalendar`: localized, swipeable month navigation with full-cell touch targets and available, in-progress, completed and unavailable day states.
 - `showRudiBottomSheet`: optional `title` and `closeIcon`, captured themes, header-only drag, spring return, scrollable body, keyboard insets and safe margins. Pass `closeIcon: null` to hide the button; dismissal through the barrier, drag and system back remains available. Existing builder/barrierLabel calls remain valid. The route owns vertical scrolling; supply non-scrollable content such as a Column.
 - `RudiApp`: system-bar icon brightness follows light/dark appearance.
 

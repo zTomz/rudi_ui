@@ -587,6 +587,20 @@ final class _ControlsPage extends StatelessWidget {
     ),
     const SizedBox(height: 56),
     const _SectionHeader(
+      eyebrow: 'Calendar',
+      title: 'A month that moves naturally.',
+      description:
+          'Swipe between months and keep day states readable without shrinking their touch targets.',
+    ),
+    const SizedBox(height: 24),
+    Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 620),
+        child: const _CalendarPreview(),
+      ),
+    ),
+    const SizedBox(height: 56),
+    const _SectionHeader(
       eyebrow: 'Confirmation',
       title: 'When a tap should mean more.',
       description:
@@ -595,6 +609,69 @@ final class _ControlsPage extends StatelessWidget {
     const SizedBox(height: 24),
     const _ConfirmationControls(),
   ]);
+}
+
+final class _CalendarPreview extends StatefulWidget {
+  const _CalendarPreview();
+
+  @override
+  State<_CalendarPreview> createState() => _CalendarPreviewState();
+}
+
+final class _CalendarPreviewState extends State<_CalendarPreview> {
+  static final _today = DateTime(2026, 9, 20);
+  static const _months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  final Set<String> _completed = {'2026-09-02', '2026-09-08', '2026-09-17'};
+  final Set<String> _inProgress = {'2026-09-14'};
+
+  String _key(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  RudiCalendarDayState _stateFor(DateTime date) {
+    final key = _key(date);
+    if (date.isAfter(_today)) return RudiCalendarDayState.unavailable;
+    if (_completed.contains(key)) return RudiCalendarDayState.completed;
+    if (_inProgress.contains(key)) return RudiCalendarDayState.inProgress;
+    return RudiCalendarDayState.available;
+  }
+
+  void _toggle(DateTime date) {
+    final key = _key(date);
+    setState(() {
+      _inProgress.remove(key);
+      if (!_completed.remove(key)) _completed.add(key);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => RudiCalendar(
+    initialMonth: DateTime(2026, 9),
+    firstMonth: DateTime(2026, 7),
+    lastMonth: DateTime(2026, 9),
+    today: _today,
+    weekdayLabels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    monthLabelBuilder: (month) => '${_months[month.month - 1]} ${month.year}',
+    dayStateBuilder: _stateFor,
+    daySemanticLabelBuilder: (day, state) =>
+        '${_months[day.month - 1]} ${day.day}, ${state.name}',
+    previousMonthSemanticLabel: 'Previous month',
+    nextMonthSemanticLabel: 'Next month',
+    onDayPressed: _toggle,
+    gridHeight: 288,
+  );
 }
 
 final class _ConfirmationControls extends StatelessWidget {
