@@ -1,5 +1,9 @@
 # Rudi UI
 
+<p align="center">
+  <img src="assets/images/rudi-ui-icon.png" alt="Rudi UI icon" width="160" />
+</p>
+
 Rudi UI is an independent, opinionated Flutter design system built on the
 framework's core widget libraries. It does not depend on Material UI or
 Cupertino UI.
@@ -62,6 +66,7 @@ font families through the immutable `RudiTextTheme` roles.
 The 0.2 changes are local and not yet published. Consume this checkout using a path override until a public Git revision or package release is available.
 
 - `RudiFloatingNavigationBar`: compact floating navigation with a continuously moving selection indicator, selected/unselected color slots, RTL, keyboard focus and reduced motion support. Supply `selectedIcon` on each destination for a filled variant.
+- `RudiPage.navigation`: automatically centers navigation above the bottom safe area as a floating overlay.
 - `RudiPressable(ink: true)`: opt-in ripple painted above the content, clipped to the control bounds, with gesture cancellation and reduced-motion feedback. Settings tiles enable it by default; enclosing rounded groups also clip the ink to their corners.
 - `RudiSettingsGroup` and `RudiSwitchTile`: separated setting rows with grouped outer corners and a single accessible toggle target.
 - `showRudiBottomSheet`: optional `title` and `closeIcon`, captured themes, header-only drag, spring return, scrollable body, keyboard insets and safe margins. Pass `closeIcon: null` to hide the button; dismissal through the barrier, drag and system back remains available. Existing builder/barrierLabel calls remain valid. The route owns vertical scrolling; supply non-scrollable content such as a Column.

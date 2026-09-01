@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 
 import '../foundation/theme.dart';
+import '../foundation/tokens.dart';
 import 'actions.dart';
 import 'navigation.dart';
 
 /// Compact floating navigation with one continuous selection indicator.
-/// Labels remain available to assistive technology; use RudiNavigationBar
-/// instead when visible text labels are needed.
+/// Labels remain available to assistive technology.
 final class const RudiFloatingNavigationBar({
   required final List<RudiNavigationDestination> destinations,
   required final int selectedIndex,
@@ -25,9 +25,15 @@ final class const RudiFloatingNavigationBar({
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
     final reduced = MediaQuery.disableAnimationsOf(context);
+    final desktop =
+        MediaQuery.sizeOf(context).width >= RudiBreakpoints.expanded;
+    final itemWidth = desktop ? 80.0 : 64.0;
+    final height = desktop ? 84.0 : 68.0;
+    final itemHeight = desktop ? 68.0 : 56.0;
+    final padding = desktop ? 8.0 : 6.0;
     return SizedBox(
-      width: destinations.length * 64.0 + 12,
-      height: 68,
+      width: destinations.length * itemWidth + padding * 2,
+      height: height,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: backgroundColor ?? theme.colors.foreground,
@@ -41,7 +47,7 @@ final class const RudiFloatingNavigationBar({
           ],
         ),
         child: Padding(
-          padding: const .all(6),
+          padding: EdgeInsets.all(padding),
           child: LayoutBuilder(
             builder: (context, bounds) {
               final slot = bounds.maxWidth / destinations.length;
@@ -84,7 +90,7 @@ final class const RudiFloatingNavigationBar({
                                     : theme.motion.fast,
                                 curve: theme.motion.standardCurve,
                                 child: Container(
-                                  height: 56,
+                                  height: itemHeight,
                                   alignment: .center,
                                   decoration: BoxDecoration(
                                     borderRadius: .circular(40),
@@ -109,7 +115,7 @@ final class const RudiFloatingNavigationBar({
                                         IconTheme(
                                           data: IconThemeData(
                                             color: color,
-                                            size: 26,
+                                            size: desktop ? 30 : 26,
                                           ),
                                           child: child!,
                                         ),

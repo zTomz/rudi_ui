@@ -14,6 +14,7 @@ dependencies:
   google_fonts: ^8.2.1
   rudi_ui:
     path: ../
+  solar_icons: ^0.1.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0

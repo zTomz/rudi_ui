@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../components/overlays.dart';
 import '../foundation/theme.dart';
+import '../foundation/tokens.dart';
 
 /// Selects how [RudiApp] resolves light and dark themes.
 enum RudiThemeMode {
@@ -192,7 +193,7 @@ final class RudiPage extends StatelessWidget {
   /// Main page content.
   final Widget child;
 
-  /// Optional bottom navigation content.
+  /// Optional navigation floated above the bottom safe area.
   final Widget? navigation;
 
   /// Optional content padding.
@@ -207,7 +208,6 @@ final class RudiPage extends StatelessWidget {
     Widget content = ColoredBox(
       color: theme.colors.background,
       child: SafeArea(
-        bottom: navigation == null,
         child: Padding(
           padding: padding ?? EdgeInsets.all(theme.spacing.md),
           child: child,
@@ -228,10 +228,19 @@ final class RudiPage extends StatelessWidget {
     if (navigation == null) {
       return content;
     }
-    return Column(
+    final navigationMargin =
+        MediaQuery.sizeOf(context).width >= RudiBreakpoints.expanded
+        ? theme.spacing.xl
+        : theme.spacing.md;
+    return Stack(
       children: [
-        Expanded(child: content),
-        navigation!,
+        content,
+        PositionedDirectional(
+          start: theme.spacing.md,
+          end: theme.spacing.md,
+          bottom: MediaQuery.paddingOf(context).bottom + navigationMargin,
+          child: Center(child: navigation),
+        ),
       ],
     );
   }

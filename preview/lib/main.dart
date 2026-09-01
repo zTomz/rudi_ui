@@ -3,43 +3,36 @@ import 'package:device_preview/presets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rudi_ui/rudi_ui.dart';
+import 'package:solar_icons/solar_icons.dart';
 
 void main() {
   DevicePreview.enable(
     enabled: true,
-    padding: const EdgeInsets.all(24),
-    backgroundDecoration: const BoxDecoration(color: Color(0xFF090A0B)),
+    padding: const EdgeInsets.all(16),
+    backgroundDecoration: const BoxDecoration(color: Color(0xFF10100F)),
   );
   runApp(const RudiPreviewApp());
 }
 
-/// Interactive, font-independent Rudi UI component lab.
 final class RudiPreviewApp extends StatefulWidget {
-  /// Creates the preview application.
   const RudiPreviewApp({super.key});
-
   @override
   State<RudiPreviewApp> createState() => _RudiPreviewAppState();
 }
 
 final class _RudiPreviewAppState extends State<RudiPreviewApp> {
   RudiThemeMode _themeMode = RudiThemeMode.system;
-
   @override
-  Widget build(BuildContext context) {
-    final light = _previewTheme(RudiThemeData.light());
-    final dark = _previewTheme(RudiThemeData.dark());
-    return RudiApp(
-      title: 'Rudi UI — Component Lab',
+  Widget build(BuildContext context) => RudiApp(
+    title: 'Rudi UI Preview',
+    themeMode: _themeMode,
+    theme: _previewTheme(RudiThemeData.light()),
+    darkTheme: _previewTheme(RudiThemeData.dark()),
+    home: _PreviewWorkspace(
       themeMode: _themeMode,
-      theme: light,
-      darkTheme: dark,
-      home: _ComponentLab(
-        themeMode: _themeMode,
-        onThemeModeChanged: (value) => setState(() => _themeMode = value),
-      ),
-    );
-  }
+      onThemeModeChanged: (value) => setState(() => _themeMode = value),
+    ),
+  );
 }
 
 RudiThemeData _previewTheme(RudiThemeData base) {
@@ -57,40 +50,36 @@ RudiThemeData _previewTheme(RudiThemeData base) {
   );
 }
 
-final class _ComponentLab extends StatefulWidget {
-  const _ComponentLab({
+final class _PreviewWorkspace extends StatefulWidget {
+  const _PreviewWorkspace({
     required this.themeMode,
     required this.onThemeModeChanged,
   });
-
   final RudiThemeMode themeMode;
   final ValueChanged<RudiThemeMode> onThemeModeChanged;
-
   @override
-  State<_ComponentLab> createState() => _ComponentLabState();
+  State<_PreviewWorkspace> createState() => _PreviewWorkspaceState();
 }
 
-final class _ComponentLabState extends State<_ComponentLab> {
+final class _PreviewWorkspaceState extends State<_PreviewWorkspace> {
+  int _page = 0;
   String _deviceId = 'real';
   Orientation _orientation = Orientation.portrait;
+  bool _motion = true;
   int _repeats = 4;
-  Duration _duration = const Duration(minutes: 8);
-
+  Duration _duration = const Duration(minutes: 12);
   DevicePreviewController? get _preview => DevicePreview.maybeController;
-
   Future<void> _selectDevice(DevicePreset? preset) async {
-    final controller = _preview;
-    if (controller == null) return;
     if (preset == null) {
-      await controller.reset();
+      await _preview?.reset();
       if (mounted) setState(() => _deviceId = 'real');
       return;
     }
-    await controller.applyPreset(preset, orientation: _orientation);
+    await _preview?.applyPreset(preset, orientation: _orientation);
     if (mounted) setState(() => _deviceId = preset.id);
   }
 
-  Future<void> _toggleOrientation() async {
+  Future<void> _rotate() async {
     final next = _orientation == Orientation.portrait
         ? Orientation.landscape
         : Orientation.portrait;
@@ -100,197 +89,188 @@ final class _ComponentLabState extends State<_ComponentLab> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.rudiTheme;
-    return ColoredBox(
-      color: theme.colors.background,
-      child: SafeArea(
-        child: Column(
-          children: [
-            _DeviceLabBar(
-              selectedId: _deviceId,
-              orientation: _orientation,
-              onSelected: _selectDevice,
-              onRotate: _toggleOrientation,
-            ),
-            Container(height: 1, color: theme.colors.outline),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final horizontalPadding = constraints.maxWidth >= 900
-                      ? 48.0
-                      : constraints.maxWidth >= 600
-                      ? 32.0
-                      : 20.0;
-                  return ListView(
-                    key: const ValueKey('component-catalog-scroll'),
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalPadding,
-                      36,
-                      horizontalPadding,
-                      72,
-                    ),
-                    children: [
-                      Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1120),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const _LabHero(),
-                              const SizedBox(height: 56),
-                              _ResponsivePair(
-                                first: _ActionSection(
-                                  onThemeModeChanged: widget.onThemeModeChanged,
-                                  themeMode: widget.themeMode,
-                                ),
-                                second: const _TypographySection(),
-                              ),
-                              const SizedBox(height: 56),
-                              _InputSection(
-                                repeats: _repeats,
-                                duration: _duration,
-                                onRepeatsChanged: (value) =>
-                                    setState(() => _repeats = value),
-                                onDurationChanged: (value) =>
-                                    setState(() => _duration = value),
-                              ),
-                              const SizedBox(height: 56),
-                              const _ResponsivePair(
-                                first: _ProgressSection(),
-                                second: _SettingsSection(),
-                              ),
-                              const SizedBox(height: 56),
-                              const _GestureSection(),
-                              const SizedBox(height: 72),
-                              Text(
-                                'Built only with Flutter core widgets.',
-                                textAlign: TextAlign.center,
-                                style: theme.text.caption.copyWith(
-                                  color: theme.colors.mutedForeground,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+    const destinations = [
+      RudiNavigationDestination(
+        icon: Icon(SolarIconsOutline.home),
+        selectedIcon: Icon(SolarIconsBold.home),
+        label: 'Overview',
       ),
-    );
-  }
-}
-
-final class _DeviceLabBar extends StatelessWidget {
-  const _DeviceLabBar({
-    required this.selectedId,
-    required this.orientation,
-    required this.onSelected,
-    required this.onRotate,
-  });
-
-  final String selectedId;
-  final Orientation orientation;
-  final ValueChanged<DevicePreset?> onSelected;
-  final VoidCallback onRotate;
-
-  static const _devices = <DevicePreset>[
-    DevicePresets.iPhone16,
-    DevicePresets.pixel10,
-    DevicePresets.iPadPro11M4,
-    DevicePresets.smallDesktopWindow,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.rudiTheme;
-    return SizedBox(
-      height: 68,
-      child: Row(
+      RudiNavigationDestination(
+        icon: Icon(SolarIconsOutline.widget),
+        selectedIcon: Icon(SolarIconsBold.widget),
+        label: 'Controls',
+      ),
+      RudiNavigationDestination(
+        icon: Icon(SolarIconsOutline.settingsMinimalistic),
+        selectedIcon: Icon(SolarIconsBold.settingsMinimalistic),
+        label: 'States',
+      ),
+    ];
+    return RudiPage(
+      padding: EdgeInsets.zero,
+      navigation: RudiFloatingNavigationBar(
+        backgroundColor: const Color(0xFF10100F),
+        indicatorColor: const Color(0xFFF7F7F5),
+        selectedColor: const Color(0xFF10100F),
+        unselectedColor: const Color(0xFFF7F7F5),
+        destinations: destinations,
+        selectedIndex: _page,
+        onDestinationSelected: (value) => setState(() => _page = value),
+      ),
+      child: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.only(left: theme.spacing.md),
-            child: Text('RUDI / LAB', style: theme.text.label),
+          _PreviewToolbar(
+            deviceId: _deviceId,
+            onDeviceSelected: _selectDevice,
+            onRotate: _rotate,
+            themeMode: widget.themeMode,
+            onThemeModeChanged: widget.onThemeModeChanged,
           ),
-          SizedBox(width: theme.spacing.md),
           Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(vertical: theme.spacing.sm),
-              child: Row(
-                children: [
-                  _DeviceChoice(
-                    label: 'Real window',
-                    selected: selectedId == 'real',
-                    onPressed: () => onSelected(null),
-                  ),
-                  for (final device in _devices)
-                    _DeviceChoice(
-                      label: device.name,
-                      selected: selectedId == device.id,
-                      onPressed: () => onSelected(device),
-                    ),
-                ],
-              ),
+            child: AnimatedSwitcher(
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : context.rudiTheme.motion.slow,
+              child: switch (_page) {
+                0 => _OverviewPage(
+                  key: const ValueKey('overview'),
+                  onNavigate: (value) => setState(() => _page = value),
+                ),
+                1 => _ControlsPage(
+                  key: const ValueKey('controls'),
+                  repeats: _repeats,
+                  duration: _duration,
+                  onRepeatsChanged: (value) => setState(() => _repeats = value),
+                  onDurationChanged: (value) =>
+                      setState(() => _duration = value),
+                ),
+                _ => _StatesPage(
+                  key: const ValueKey('states'),
+                  motion: _motion,
+                  onMotionChanged: (value) => setState(() => _motion = value),
+                ),
+              },
             ),
           ),
-          RudiIconButton(
-            semanticLabel: orientation == Orientation.portrait
-                ? 'Preview landscape'
-                : 'Preview portrait',
-            onPressed: onRotate,
-            icon: RudiGlyph(
-              orientation == Orientation.portrait
-                  ? RudiGlyphType.chevron
-                  : RudiGlyphType.check,
-            ),
-          ),
-          SizedBox(width: theme.spacing.sm),
         ],
       ),
     );
   }
 }
 
-final class _DeviceChoice extends StatelessWidget {
-  const _DeviceChoice({
+final class _PreviewToolbar extends StatelessWidget {
+  const _PreviewToolbar({
+    required this.deviceId,
+    required this.onDeviceSelected,
+    required this.onRotate,
+    required this.themeMode,
+    required this.onThemeModeChanged,
+  });
+  final String deviceId;
+  final ValueChanged<DevicePreset?> onDeviceSelected;
+  final VoidCallback onRotate;
+  final RudiThemeMode themeMode;
+  final ValueChanged<RudiThemeMode> onThemeModeChanged;
+  static const _devices = [
+    DevicePresets.iPhone16,
+    DevicePresets.pixel10,
+    DevicePresets.iPadPro11M4,
+    DevicePresets.smallDesktopWindow,
+  ];
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.rudiTheme;
+    return Container(
+      height: 72,
+      padding: EdgeInsets.symmetric(horizontal: theme.spacing.md),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: theme.colors.outline)),
+      ),
+      child: Row(
+        children: [
+          Text('RUDI', style: theme.text.title),
+          const SizedBox(width: 10),
+          Text(
+            'PREVIEW',
+            style: theme.text.caption.copyWith(color: theme.colors.accent),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _ToolbarChoice(
+                    label: 'Window',
+                    selected: deviceId == 'real',
+                    onPressed: () => onDeviceSelected(null),
+                  ),
+                  for (final device in _devices)
+                    _ToolbarChoice(
+                      label: device.name,
+                      selected: deviceId == device.id,
+                      onPressed: () => onDeviceSelected(device),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          if (deviceId != 'real')
+            RudiIconButton(
+              semanticLabel: 'Rotate preview',
+              icon: const Icon(SolarIconsOutline.smartphoneRotateOrientation),
+              onPressed: onRotate,
+            ),
+          RudiIconButton(
+            semanticLabel: themeMode == RudiThemeMode.dark
+                ? 'Use light theme'
+                : 'Use dark theme',
+            icon: Icon(
+              themeMode == RudiThemeMode.dark
+                  ? SolarIconsOutline.sun
+                  : SolarIconsOutline.moon,
+            ),
+            onPressed: () => onThemeModeChanged(
+              themeMode == RudiThemeMode.dark
+                  ? RudiThemeMode.light
+                  : RudiThemeMode.dark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+final class _ToolbarChoice extends StatelessWidget {
+  const _ToolbarChoice({
     required this.label,
     required this.selected,
     required this.onPressed,
   });
-
   final String label;
   final bool selected;
   final VoidCallback onPressed;
-
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
     return Padding(
-      padding: EdgeInsets.only(right: theme.spacing.sm),
+      padding: const EdgeInsets.only(right: 8),
       child: RudiPressable(
         onPressed: onPressed,
         builder: (context, state) => AnimatedContainer(
           duration: MediaQuery.disableAnimationsOf(context)
               ? Duration.zero
               : theme.motion.fast,
-          constraints: const BoxConstraints(minHeight: 44),
-          padding: EdgeInsets.symmetric(horizontal: theme.spacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: selected || state.hovered
-                ? theme.colors.foreground
-                : theme.colors.surface,
+            color: selected ? theme.colors.foreground : theme.colors.surface,
             borderRadius: BorderRadius.circular(theme.radii.pill),
           ),
-          alignment: Alignment.center,
           child: Text(
             label,
             style: theme.text.caption.copyWith(
-              color: selected || state.hovered
+              color: selected
                   ? theme.colors.background
                   : theme.colors.foreground,
             ),
@@ -301,424 +281,479 @@ final class _DeviceChoice extends StatelessWidget {
   }
 }
 
-final class _LabHero extends StatelessWidget {
-  const _LabHero();
+abstract final class _PageLayout {
+  static Widget build(BuildContext context, List<Widget> children) => ListView(
+    key: const ValueKey('component-catalog-scroll'),
+    padding: const EdgeInsets.fromLTRB(20, 32, 20, 176),
+    children: [
+      Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1080),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          ),
+        ),
+      ),
+    ],
+  );
+}
 
+final class _OverviewPage extends StatelessWidget {
+  const _OverviewPage({required this.onNavigate, super.key});
+  final ValueChanged<int> onNavigate;
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
-    return Semantics(
-      header: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'RUDI UI',
-            style: theme.text.label.copyWith(color: theme.colors.accent),
+    return _PageLayout.build(context, [
+      Semantics(
+        header: true,
+        child: Container(
+          padding: EdgeInsets.all(theme.spacing.xl),
+          decoration: BoxDecoration(
+            color: theme.colors.foreground,
+            borderRadius: BorderRadius.circular(theme.radii.xl),
           ),
-          SizedBox(height: theme.spacing.sm),
-          Text(
-            'One system.\nEvery Flutter surface.',
-            style: theme.text.display,
-          ),
-          SizedBox(height: theme.spacing.md),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 620),
-            child: Text(
-              'A font-independent, accessible component system built without Material or Cupertino UI. This lab injects Google Fonts separately.',
-              style: theme.text.body.copyWith(
-                color: theme.colors.mutedForeground,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-final class _ResponsivePair extends StatelessWidget {
-  const _ResponsivePair({required this.first, required this.second});
-
-  final Widget first;
-  final Widget second;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= 760) {
-          return Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: first),
-              const SizedBox(width: 48),
-              Expanded(child: second),
+              Text(
+                'RUDI UI',
+                style: theme.text.label.copyWith(color: theme.colors.accent),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'A calmer way to\nbuild Flutter.',
+                style: theme.text.display.copyWith(
+                  color: theme.colors.background,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Text(
+                  'An independent, accessible UI system for the surfaces people use every day.',
+                  style: theme.text.body.copyWith(
+                    color: theme.colors.background.withValues(alpha: .72),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              RudiButton(
+                label: 'Explore controls',
+                leading: const RudiGlyph(RudiGlyphType.chevron),
+                onPressed: () => onNavigate(1),
+              ),
             ],
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [first, const SizedBox(height: 48), second],
-        );
-      },
-    );
+          ),
+        ),
+      ),
+      const SizedBox(height: 56),
+      const _SectionHeader(
+        eyebrow: 'Latest components',
+        title: 'Small set. Complete behavior.',
+        description:
+            'The newest building blocks are shown in a real interface, not a wall of isolated demos.',
+      ),
+      const SizedBox(height: 24),
+      LayoutBuilder(
+        builder: (context, constraints) => constraints.maxWidth >= 720
+            ? const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _NavigationFeature()),
+                  SizedBox(width: 48),
+                  Expanded(child: _ProgressFeature()),
+                ],
+              )
+            : const Column(
+                children: [
+                  _NavigationFeature(),
+                  SizedBox(height: 40),
+                  _ProgressFeature(),
+                ],
+              ),
+      ),
+      const SizedBox(height: 64),
+      const _SectionHeader(
+        eyebrow: 'Interaction',
+        title: 'Built to be used.',
+        description:
+            'Open a route, trigger feedback, or try direct manipulation.',
+      ),
+      const SizedBox(height: 24),
+      const _RouteActions(),
+    ]);
   }
 }
 
-final class _Section extends StatelessWidget {
-  const _Section({
-    required this.eyebrow,
-    required this.title,
-    required this.description,
-    required this.child,
-  });
+final class _NavigationFeature extends StatefulWidget {
+  const _NavigationFeature();
+  @override
+  State<_NavigationFeature> createState() => _NavigationFeatureState();
+}
 
-  final String eyebrow;
-  final String title;
-  final String description;
-  final Widget child;
+final class _NavigationFeatureState extends State<_NavigationFeature> {
+  int _selected = 0;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('Floating navigation', style: context.rudiTheme.text.title),
+      const SizedBox(height: 8),
+      Text(
+        'A continuous selection indicator keeps compact navigation unmistakable.',
+        style: context.rudiTheme.text.body.copyWith(
+          color: context.rudiTheme.colors.mutedForeground,
+        ),
+      ),
+      const SizedBox(height: 24),
+      Center(
+        child: RudiFloatingNavigationBar(
+          backgroundColor: const Color(0xFF10100F),
+          indicatorColor: const Color(0xFFF7F7F5),
+          selectedColor: const Color(0xFF10100F),
+          unselectedColor: const Color(0xFFF7F7F5),
+          selectedIndex: _selected,
+          onDestinationSelected: (value) => setState(() => _selected = value),
+          destinations: const [
+            RudiNavigationDestination(
+              icon: Icon(SolarIconsOutline.home),
+              selectedIcon: Icon(SolarIconsBold.home),
+              label: 'Browse',
+            ),
+            RudiNavigationDestination(
+              icon: Icon(SolarIconsOutline.widget),
+              selectedIcon: Icon(SolarIconsBold.widget),
+              label: 'Move',
+            ),
+            RudiNavigationDestination(
+              icon: Icon(SolarIconsOutline.settingsMinimalistic),
+              selectedIcon: Icon(SolarIconsBold.settingsMinimalistic),
+              label: 'Alert',
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
 
+final class _ProgressFeature extends StatelessWidget {
+  const _ProgressFeature();
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text('Progress with intent', style: theme.text.title),
+        const SizedBox(height: 8),
         Text(
-          eyebrow.toUpperCase(),
-          style: theme.text.caption.copyWith(color: theme.colors.accent),
-        ),
-        SizedBox(height: theme.spacing.xs),
-        Text(title, style: theme.text.headline),
-        SizedBox(height: theme.spacing.sm),
-        Text(
-          description,
+          'Motion respects system preferences while status stays readable.',
           style: theme.text.body.copyWith(color: theme.colors.mutedForeground),
         ),
-        SizedBox(height: theme.spacing.lg),
-        child,
+        const SizedBox(height: 28),
+        const RudiLinearProgress(
+          value: .68,
+          semanticLabel: '68 percent complete',
+        ),
+        const SizedBox(height: 24),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            RudiProgressRing(value: .68, size: 96),
+            RudiTickProgress(value: .68, size: 96),
+          ],
+        ),
       ],
     );
   }
 }
 
-final class _ActionSection extends StatelessWidget {
-  const _ActionSection({
-    required this.themeMode,
-    required this.onThemeModeChanged,
-  });
-
-  final RudiThemeMode themeMode;
-  final ValueChanged<RudiThemeMode> onThemeModeChanged;
-
+final class _RouteActions extends StatelessWidget {
+  const _RouteActions();
   @override
-  Widget build(BuildContext context) {
-    return _Section(
-      eyebrow: 'Actions',
-      title: 'Clear by default',
-      description:
-          'Pointer, keyboard, focus, loading and disabled states share one interaction model.',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          RudiButton(
-            label: 'Show message',
-            onPressed: () => RudiMessenger.of(
-              context,
-            ).show(const RudiSnack(message: 'Rudi UI is ready.')),
-          ),
-          const SizedBox(height: 12),
-          RudiButton(
-            label: 'Open dialog',
-            variant: RudiButtonVariant.subtle,
-            onPressed: () => showRudiDialog<void>(
-              context: context,
-              barrierLabel: 'Dismiss dialog',
-              builder: (dialogContext) => RudiDialog(
-                title: const Text('Independent by design'),
-                content: const Text(
-                  'This route, surface and interaction use Flutter core widgets.',
-                ),
-                actions: [
-                  RudiButton(
-                    label: 'Done',
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          RudiButton(
-            label: 'Open bottom sheet',
-            variant: RudiButtonVariant.subtle,
-            onPressed: () => showRudiBottomSheet<void>(
-              context: context,
-              barrierLabel: 'Dismiss bottom sheet',
-              builder: (sheetContext) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'A native Rudi surface',
-                      style: sheetContext.rudiTheme.text.headline,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Drag the sheet down, use Escape or tap the barrier to dismiss it.',
-                      style: sheetContext.rudiTheme.text.body,
-                    ),
-                    const SizedBox(height: 24),
-                    RudiButton(
-                      label: 'Done',
-                      onPressed: () => Navigator.of(sheetContext).pop(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          RudiButton(
-            label: themeMode == RudiThemeMode.dark
-                ? 'Use light theme'
-                : 'Use dark theme',
-            variant: RudiButtonVariant.subtle,
-            onPressed: () => onThemeModeChanged(
-              themeMode == RudiThemeMode.dark
-                  ? RudiThemeMode.light
-                  : RudiThemeMode.dark,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const RudiButton(label: 'Unavailable action', onPressed: null),
-        ],
+  Widget build(BuildContext context) => Wrap(
+    spacing: 12,
+    runSpacing: 12,
+    children: [
+      RudiButton(
+        label: 'Show message',
+        leading: const RudiGlyph(RudiGlyphType.check),
+        onPressed: () => RudiMessenger.of(
+          context,
+        ).show(const RudiSnack(message: 'Saved locally.', actionLabel: 'Undo')),
       ),
-    );
-  }
+      RudiButton(
+        label: 'Open dialog',
+        variant: RudiButtonVariant.subtle,
+        onPressed: () => showRudiDialog<void>(
+          context: context,
+          barrierLabel: 'Dismiss dialog',
+          builder: (dialogContext) => RudiDialog(
+            title: const Text('Independent by design'),
+            content: const Text(
+              'Routes, focus behavior and surfaces are built with Flutter core widgets.',
+            ),
+            actions: [
+              RudiButton(
+                label: 'Done',
+                onPressed: () => Navigator.pop(dialogContext),
+              ),
+            ],
+          ),
+        ),
+      ),
+      RudiButton(
+        label: 'Open sheet',
+        variant: RudiButtonVariant.subtle,
+        onPressed: () => showRudiBottomSheet<void>(
+          context: context,
+          title: 'A native Rudi surface',
+          barrierLabel: 'Dismiss bottom sheet',
+          builder: (sheetContext) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Drag, tap the barrier or press Escape to dismiss this route.',
+                style: sheetContext.rudiTheme.text.body,
+              ),
+              const SizedBox(height: 24),
+              RudiButton(
+                label: 'Done',
+                onPressed: () => Navigator.pop(sheetContext),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
 }
 
-final class _TypographySection extends StatelessWidget {
-  const _TypographySection();
-
-  @override
-  Widget build(BuildContext context) {
-    final text = context.rudiTheme.text;
-    return _Section(
-      eyebrow: 'Typography',
-      title: 'Roles, not font files',
-      description:
-          'Rudi defines hierarchy and rhythm. The consuming app owns every font family and its license.',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Display 40', style: text.display),
-          const SizedBox(height: 12),
-          Text('Headline 28', style: text.headline),
-          const SizedBox(height: 12),
-          Text('Title 20', style: text.title),
-          const SizedBox(height: 12),
-          Text(
-            'Body text remains readable across platforms.',
-            style: text.body,
-          ),
-          const SizedBox(height: 12),
-          Text('LABEL 15', style: text.label),
-          const SizedBox(height: 12),
-          Text('Caption 13', style: text.caption),
-        ],
-      ),
-    );
-  }
-}
-
-final class _InputSection extends StatelessWidget {
-  const _InputSection({
+final class _ControlsPage extends StatelessWidget {
+  const _ControlsPage({
     required this.repeats,
     required this.duration,
     required this.onRepeatsChanged,
     required this.onDurationChanged,
+    super.key,
   });
-
   final int repeats;
   final Duration duration;
   final ValueChanged<int> onRepeatsChanged;
   final ValueChanged<Duration> onDurationChanged;
-
   @override
-  Widget build(BuildContext context) {
-    return _Section(
-      eyebrow: 'Input',
-      title: 'Made for real interaction',
+  Widget build(BuildContext context) => _PageLayout.build(context, [
+    const _SectionHeader(
+      eyebrow: 'Controls',
+      title: 'Direct, precise, accessible.',
       description:
-          'Try keyboard input, selection, stepping and precise pointer or touch changes.',
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final fields = [
-            const RudiTextField(
-              label: 'Routine name',
-              hint: 'Morning focus',
-              maxLength: 48,
-            ),
-            RudiNumberInput(
-              value: repeats,
-              min: 1,
-              max: 12,
-              label: 'Repeats',
-              decreaseSemanticLabel: 'Decrease repeats',
-              increaseSemanticLabel: 'Increase repeats',
-              onChanged: (value) => onRepeatsChanged(value.toInt()),
-            ),
-          ];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (constraints.maxWidth >= 760)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: fields.first),
-                    const SizedBox(width: 32),
-                    Expanded(child: fields.last),
-                  ],
-                )
-              else ...[
-                fields.first,
-                const SizedBox(height: 24),
-                fields.last,
-              ],
-              const SizedBox(height: 32),
-              RudiDurationRuler(
-                value: duration,
-                min: const Duration(minutes: 1),
-                max: const Duration(minutes: 30),
-                divisions: 29,
-                semanticLabel: 'Duration',
-                semanticValueBuilder: (value) => '${value.inMinutes} minutes',
-                onChanged: onDurationChanged,
-              ),
-              Text(
-                '${duration.inMinutes} minutes',
-                textAlign: TextAlign.center,
-                style: context.rudiTheme.text.label,
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+          'Controls share touch targets, keyboard behavior and reduced-motion support.',
+    ),
+    const SizedBox(height: 36),
+    const RudiTextField(
+      label: 'Routine name',
+      hint: 'Morning focus',
+      maxLength: 48,
+    ),
+    const SizedBox(height: 28),
+    RudiNumberInput(
+      value: repeats,
+      min: 1,
+      max: 12,
+      label: 'Repeats',
+      decreaseSemanticLabel: 'Decrease repeats',
+      increaseSemanticLabel: 'Increase repeats',
+      onChanged: (value) => onRepeatsChanged(value.toInt()),
+    ),
+    const SizedBox(height: 32),
+    RudiDurationRuler(
+      value: duration,
+      min: const Duration(minutes: 1),
+      max: const Duration(minutes: 30),
+      divisions: 29,
+      semanticLabel: 'Duration',
+      semanticValueBuilder: (value) => '${value.inMinutes} minutes',
+      onChanged: onDurationChanged,
+    ),
+    const SizedBox(height: 8),
+    Text(
+      '${duration.inMinutes} minutes',
+      textAlign: TextAlign.center,
+      style: context.rudiTheme.text.label,
+    ),
+    const SizedBox(height: 56),
+    const _SectionHeader(
+      eyebrow: 'Confirmation',
+      title: 'When a tap should mean more.',
+      description:
+          'Hold and swipe affordances prevent accidental consequential actions.',
+    ),
+    const SizedBox(height: 24),
+    const _ConfirmationControls(),
+  ]);
 }
 
-final class _ProgressSection extends StatelessWidget {
-  const _ProgressSection();
-
+final class _ConfirmationControls extends StatelessWidget {
+  const _ConfirmationControls();
   @override
   Widget build(BuildContext context) {
-    return _Section(
-      eyebrow: 'Progress',
-      title: 'Quiet momentum',
-      description:
-          'Determinate and indeterminate progress honors reduced-motion preferences.',
-      child: const Column(
-        children: [
-          RudiLinearProgress(value: 0.68, semanticLabel: '68 percent'),
-          SizedBox(height: 28),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              RudiProgressRing(value: 0.68, size: 112),
-              RudiTickProgress(value: 0.68, size: 112),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-final class _SettingsSection extends StatelessWidget {
-  const _SettingsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return _Section(
-      eyebrow: 'Settings',
-      title: 'Structured choices',
-      description:
-          'Grouped controls retain clear focus order and selection semantics.',
-      child: RudiSettingsSection(
-        children: [
-          const RudiSettingsTile(
-            title: 'Accessible motion',
-            subtitle: 'Follows the system preference',
-            leading: RudiGlyph(RudiGlyphType.check),
-            selected: true,
-          ),
-          RudiExpandableControl(
-            header: const Text('More options'),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Expandable content stays in the same logical focus group.',
-                style: context.rudiTheme.text.body,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-final class _GestureSection extends StatelessWidget {
-  const _GestureSection();
-
-  @override
-  Widget build(BuildContext context) {
-    void confirmed() => RudiMessenger.of(
+    void confirm() => RudiMessenger.of(
       context,
     ).show(const RudiSnack(message: 'Gesture confirmed.'));
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hold = RudiHoldToConfirm(
+          label: 'Hold to confirm',
+          icon: const RudiGlyph(RudiGlyphType.check),
+          semanticHint: 'Press and hold to confirm',
+          onConfirmed: confirm,
+        );
+        final swipe = RudiSwipeAction(
+          label: 'Swipe to finish',
+          thumb: const RudiGlyph(RudiGlyphType.chevron),
+          semanticHint: 'Swipe right to confirm',
+          completedSemanticHint: 'Completed',
+          loadingSemanticHint: 'Loading',
+          onConfirmed: confirm,
+        );
+        return constraints.maxWidth >= 720
+            ? Row(
+                children: [
+                  Expanded(child: hold),
+                  const SizedBox(width: 24),
+                  Expanded(child: swipe),
+                ],
+              )
+            : Column(children: [hold, const SizedBox(height: 16), swipe]);
+      },
+    );
+  }
+}
 
-    return _Section(
-      eyebrow: 'Gestures',
-      title: 'Deliberate actions feel deliberate',
+final class _StatesPage extends StatelessWidget {
+  const _StatesPage({
+    required this.motion,
+    required this.onMotionChanged,
+    super.key,
+  });
+  final bool motion;
+  final ValueChanged<bool> onMotionChanged;
+  @override
+  Widget build(BuildContext context) => _PageLayout.build(context, [
+    const _SectionHeader(
+      eyebrow: 'States',
+      title: 'Every outcome has a surface.',
       description:
-          'Hold and swipe controls provide tactile alternatives for consequential actions.',
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final hold = RudiHoldToConfirm(
-            label: 'Hold to confirm',
-            icon: const RudiGlyph(RudiGlyphType.close),
-            semanticHint: 'Press and hold to confirm',
-            onConfirmed: confirmed,
-          );
-          final swipe = RudiSwipeAction(
-            label: 'Swipe to finish',
-            thumb: const RudiGlyph(RudiGlyphType.chevron),
-            semanticHint: 'Swipe right to confirm',
-            completedSemanticHint: 'Completed',
-            loadingSemanticHint: 'Loading',
-            onConfirmed: confirmed,
-          );
-          if (constraints.maxWidth >= 760) {
-            return Row(
+          'The states below make recovery, waiting and empty moments part of the product.',
+    ),
+    const SizedBox(height: 32),
+    RudiSettingsGroup(
+      title: 'PREFERENCES',
+      children: [
+        RudiSwitchTile(
+          title: 'Comfortable motion',
+          subtitle: 'Preview component transitions',
+          leading: const RudiGlyph(RudiGlyphType.info),
+          value: motion,
+          onChanged: onMotionChanged,
+        ),
+        const RudiSettingsTile(
+          title: 'Keyboard-first controls',
+          subtitle: 'Focus rings and semantic targets included',
+          leading: RudiGlyph(RudiGlyphType.check),
+          selected: true,
+        ),
+      ],
+    ),
+    const SizedBox(height: 48),
+    LayoutBuilder(
+      builder: (context, constraints) => constraints.maxWidth >= 720
+          ? const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: hold),
-                const SizedBox(width: 32),
-                Expanded(child: swipe),
+                Expanded(child: _EmptyState()),
+                SizedBox(width: 32),
+                Expanded(child: _ErrorState()),
               ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [hold, const SizedBox(height: 20), swipe],
-          );
-        },
-      ),
+            )
+          : const Column(
+              children: [_EmptyState(), SizedBox(height: 32), _ErrorState()],
+            ),
+    ),
+    const SizedBox(height: 40),
+    const RudiLoadingView(label: 'Loading a fresh component state…'),
+  ]);
+}
+
+final class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+  @override
+  Widget build(BuildContext context) => RudiEmptyView(
+    title: 'Nothing to review',
+    message: 'New work will appear here when it is ready.',
+    action: RudiButton(
+      label: 'Create item',
+      onPressed: () => RudiMessenger.of(
+        context,
+      ).show(const RudiSnack(message: 'New item created.')),
+    ),
+  );
+}
+
+final class _ErrorState extends StatelessWidget {
+  const _ErrorState();
+  @override
+  Widget build(BuildContext context) => RudiErrorView(
+    title: 'Connection interrupted',
+    message: 'Your work is safe. Try again when you are ready.',
+    details: 'Preview error: request timed out after 8 seconds.',
+    showDetailsLabel: 'Show details',
+    hideDetailsLabel: 'Hide details',
+    primaryAction: RudiButton(
+      label: 'Try again',
+      onPressed: () => RudiMessenger.of(
+        context,
+      ).show(const RudiSnack(message: 'Trying again…')),
+    ),
+  );
+}
+
+final class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.eyebrow,
+    required this.title,
+    required this.description,
+  });
+  final String eyebrow;
+  final String title;
+  final String description;
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.rudiTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          eyebrow.toUpperCase(),
+          style: theme.text.caption.copyWith(color: theme.colors.accent),
+        ),
+        const SizedBox(height: 8),
+        Text(title, style: theme.text.headline),
+        const SizedBox(height: 12),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 620),
+          child: Text(
+            description,
+            style: theme.text.body.copyWith(
+              color: theme.colors.mutedForeground,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

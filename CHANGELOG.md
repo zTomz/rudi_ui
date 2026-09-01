@@ -6,6 +6,7 @@
 - Tightens settings/navigation spacing, exposes selected navigation color, and allows a null bottom-sheet closeIcon to hide the button.
 - Requires Flutter 3.47 / Dart 3.13; new components use primary constructors.
 - Adds floating navigation with interruptible movement and RTL support.
+- Floats `RudiPage.navigation` above page content and the bottom safe area automatically.
 - Adds grouped settings rows and animated switch tiles.
 - Allows app-owned icon sets through the optional bottom-sheet closeIcon widget.
 - Refines bottom sheets with header dragging, spring return, optional title/close control, safe keyboard insets and an internally scrollable body.
