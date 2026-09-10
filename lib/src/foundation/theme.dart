@@ -292,7 +292,7 @@ final class RudiThemeData {
 
   /// Creates the official dark Rudi theme.
   factory RudiThemeData.dark({
-    Color accent = const Color(0xFF43A9EB),
+    Color accent = const Color(0xFF128FE2),
     bool highContrast = false,
     RudiFeedbackPolicy feedback = const RudiFeedbackPolicy(),
   }) {

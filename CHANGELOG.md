@@ -2,6 +2,7 @@
 
 ## 0.2.0 (unreleased)
 
+- Aligns the official dark palette and floating-navigation color roles with Loop, keeping the bar distinct from dark page backgrounds without a muddy dark-mode shadow.
 - Adds opt-in, clipped press ripples to RudiPressable, enabled for settings rows; honors reduced motion and gesture cancellation.
 - Tightens settings/navigation spacing, exposes selected navigation color, and allows a null bottom-sheet closeIcon to hide the button.
 - Requires Flutter 3.47 / Dart 3.13; new components use primary constructors.

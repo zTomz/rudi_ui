@@ -1,10 +1,62 @@
 import 'dart:async';
+import 'dart:ui' show Tristate;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rudi_ui/rudi_ui.dart';
 
 void main() {
+  for (final brightness in Brightness.values) {
+    testWidgets('selected settings contrast in $brightness', (tester) async {
+      final theme = brightness == Brightness.light
+          ? RudiThemeData.light()
+          : RudiThemeData.dark();
+      await tester.pumpWidget(
+        RudiApp(
+          theme: theme,
+          home: RudiSettingsGroup(
+            children: [
+              RudiSettingsTile(
+                title: 'Selected',
+                subtitle: 'Description',
+                selected: true,
+                leading: const RudiGlyph(RudiGlyphType.info),
+                trailing: const RudiGlyph(RudiGlyphType.check),
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      );
+      final tile = find.byType(RudiSettingsTile);
+      final container = tester.widget<AnimatedContainer>(
+        find
+            .descendant(of: tile, matching: find.byType(AnimatedContainer))
+            .first,
+      );
+      expect(
+        (container.decoration! as BoxDecoration).color,
+        theme.colors.foreground,
+      );
+      expect(
+        tester.widget<Text>(find.text('Selected')).style!.color,
+        theme.colors.background,
+      );
+      expect(
+        tester.widget<Text>(find.text('Description')).style!.color,
+        theme.colors.background.withValues(alpha: .67),
+      );
+      for (final element in find.byType(RudiGlyph).evaluate()) {
+        expect(IconTheme.of(element).color, theme.colors.background);
+      }
+      expect(
+        tester.getSemantics(tile).getSemanticsData().flagsCollection.isSelected,
+        Tristate.isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   for (final reduced in [false, true]) {
     testWidgets(
       'settings ink paints, cancels and settles (reduced: $reduced)',

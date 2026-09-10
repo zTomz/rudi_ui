@@ -36,15 +36,17 @@ final class const RudiFloatingNavigationBar({
       height: height,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: backgroundColor ?? theme.colors.foreground,
+          color: backgroundColor ?? theme.colors.primary,
           borderRadius: .circular(44),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xff000000).withValues(alpha: .12),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          boxShadow: theme.brightness == Brightness.dark
+              ? const []
+              : [
+                  BoxShadow(
+                    color: const Color(0xff000000).withValues(alpha: .12),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
         ),
         child: Padding(
           padding: EdgeInsets.all(padding),
@@ -104,9 +106,10 @@ final class const RudiFloatingNavigationBar({
                                   child: TweenAnimationBuilder<Color?>(
                                     tween: ColorTween(
                                       end: index == selectedIndex
-                                          ? selectedColor ?? theme.colors.accent
+                                          ? selectedColor ??
+                                                theme.colors.foreground
                                           : unselectedColor ??
-                                                theme.colors.background,
+                                                theme.colors.onPrimary,
                                     ),
                                     duration: reduced
                                         ? Duration.zero

@@ -30,6 +30,18 @@ void main() {
       expect(middle.text.body.fontSize, closeTo(16, 0.001));
       expect(middle.brightness, Brightness.dark);
     });
+
+    test('uses the Loop-aligned dark palette', () {
+      final dark = RudiThemeData.dark();
+
+      expect(dark.colors.background, const Color(0xFF111214));
+      expect(dark.colors.foreground, const Color(0xFFF2F4F5));
+      expect(dark.colors.surface, const Color(0xFF24262A));
+      expect(dark.colors.surfaceContainer, const Color(0xFF1C1E21));
+      expect(dark.colors.primary, const Color(0xFF33363B));
+      expect(dark.colors.onPrimary, const Color(0xFFF2F4F5));
+      expect(dark.colors.accent, const Color(0xFF128FE2));
+    });
   });
 }
 

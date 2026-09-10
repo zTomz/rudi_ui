@@ -112,7 +112,9 @@ final class RudiSettingsTile extends StatelessWidget {
             horizontal: theme.spacing.md,
             vertical: 12,
           ),
-          color: selected || state.hovered
+          color: selected
+              ? theme.colors.foreground
+              : state.hovered
               ? theme.colors.surface
               : const Color(0x00000000),
           child: Row(
@@ -121,7 +123,7 @@ final class RudiSettingsTile extends StatelessWidget {
                 IconTheme(
                   data: IconThemeData(
                     color: selected
-                        ? theme.colors.accent
+                        ? theme.colors.background
                         : theme.colors.foreground,
                   ),
                   child: leading!,
@@ -133,13 +135,22 @@ final class RudiSettingsTile extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.text.label),
+                    Text(
+                      title,
+                      style: theme.text.label.copyWith(
+                        color: selected
+                            ? theme.colors.background
+                            : theme.colors.foreground,
+                      ),
+                    ),
                     if (subtitle case final text?) ...[
                       SizedBox(height: theme.spacing.xs),
                       Text(
                         text,
                         style: theme.text.caption.copyWith(
-                          color: theme.colors.mutedForeground,
+                          color: selected
+                              ? theme.colors.background.withValues(alpha: 0.67)
+                              : theme.colors.mutedForeground,
                         ),
                       ),
                     ],
@@ -147,13 +158,25 @@ final class RudiSettingsTile extends StatelessWidget {
                 ),
               ),
               SizedBox(width: theme.spacing.sm),
-              trailing ??
-                  (onPressed == null
-                      ? const SizedBox.shrink()
-                      : RudiGlyph(
-                          RudiGlyphType.chevron,
-                          color: theme.colors.mutedForeground,
-                        )),
+              IconTheme(
+                data: IconThemeData(
+                  color: selected
+                      ? theme.colors.background
+                      : theme.colors.mutedForeground,
+                ),
+                child: DefaultTextStyle.merge(
+                  style: TextStyle(
+                    color: selected
+                        ? theme.colors.background
+                        : theme.colors.mutedForeground,
+                  ),
+                  child:
+                      trailing ??
+                      (onPressed == null
+                          ? const SizedBox.shrink()
+                          : const RudiGlyph(RudiGlyphType.chevron)),
+                ),
+              ),
             ],
           ),
         ),
