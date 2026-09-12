@@ -1,13 +1,56 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+All notable changes to Rudi UI are documented in this file.
+
+Rudi UI follows Semantic Versioning. Until 1.0, breaking API changes increment
+the minor version.
+
+## 0.3.0 - 2026-09-13
+
+### Added
+
+- Adds `RudiInfoTooltip`, an anchored, accessible explanation bubble with
+  automatic and tap-outside dismissal, reduced-motion support and RTL-aware
+  positioning.
+- Adds `RudiSwitchTile.supporting` for a secondary action such as
+  `RudiInfoTooltip` beside the switch indicator.
+- Adds `RudiSettingsTile.ink` to let compound rows disable the row-wide press
+  ripple when they contain an independent supporting action.
+- Adds `RudiSystemUi` so applications that do not use `RudiApp` can install the
+  same system-bar styling explicitly.
+- Adds `RudiPage.safeAreaTop` and `RudiPage.safeAreaBottom` for app-owned
+  headers and edge-to-edge scrolling content. Both default to `true`.
+
+### Changed
+
+- Makes the status bar, system navigation bar and navigation-bar divider
+  transparent, keeps icon brightness aligned with the active Rudi theme and
+  disables Android's navigation contrast scrim.
+- Positions `RudiPage.navigation` in a full-width bottom overlay. Navigation
+  widgets now own their safe-area handling and outer spacing;
+  `RudiFloatingNavigationBar` already provides both.
+- Demonstrates supporting tooltips in the interactive preview and expands
+  regression coverage for tooltips, system UI, safe areas and navigation
+  placement.
+
+### Migration notes
+
+- Custom widgets passed to `RudiPage.navigation` should wrap themselves in
+  `SafeArea(top: false)` and provide their own outer padding. No change is
+  required when using `RudiFloatingNavigationBar`.
+- For a page with an app-owned status-bar header and content scrolling behind
+  floating navigation, set both `safeAreaTop: false` and
+  `safeAreaBottom: false`. The header and navigation remain responsible for
+  their respective insets.
+
+## 0.2.0 - 2026-09-12
 
 ### Breaking changes
 
 - `showRudiBottomSheet` now creates the route only. Compose its `builder` with
   `RudiBottomSheet` to provide the title, content, actions and optional
-  `RudiBottomSheetCloseButton`. The route options are now named
-  `isDismissible` and `enableDrag`, and `useRootNavigator` defaults to `false`.
+  `RudiBottomSheetCloseButton`. Route options are now named `isDismissible`
+  and `enableDrag`, and `useRootNavigator` defaults to `false`.
 - `RudiFloatingNavigationBar` now derives its colors from `RudiThemeData`.
   Remove `backgroundColor`, `indicatorColor`, `selectedColor` and
   `unselectedColor` arguments. Contextual actions move to
@@ -16,7 +59,7 @@
   compact inline sizing.
 - `RudiSwipeAction.hapticsEnabled` was removed. Configure haptics once through
   `RudiThemeData.feedback` instead.
-- The minimum supported versions are now Flutter 3.47 and Dart 3.13.
+- Raises the minimum supported versions to Flutter 3.47 and Dart 3.13.
 
 ### Migration example
 
@@ -32,44 +75,62 @@ showRudiBottomSheet<void>(
 );
 ```
 
-### Added and changed
+### Added
 
-- Establishes Rudi UI as the shared app foundation for page surfaces, dialogs, bottom sheets, navigation, controls and interaction feedback.
-- Aligns dialogs, bottom sheets, buttons, text fields and floating navigation with Loop's production component geometry and behavior.
-- Adds responsive dialog headers/actions and contextual floating-navigation actions.
-- Replaces the former bottom-sheet convenience API with a reusable `RudiBottomSheet` shell and fully configurable spring route.
-- Routes swipe-action feedback through the theme policy, removing its duplicate component-level haptic switch.
-- Makes buttons phone-wide and tablet-capped by default, with optional compact width, minimum height and maximum width overrides.
-- Adds reusable scale feedback to `RudiPressable` and aligns transient messages with Loop's pill presentation.
-- Moves Loop's icon settings rows, switch treatment, hold/swipe confirmation and duration ruler into the shared component API.
-- Adds a read-only preview offset to `RudiDurationRuler` for animated product demonstrations.
-- Refines the official dark palette and floating-navigation color roles, keeping the bar distinct from dark page backgrounds without a muddy shadow.
-- Adds opt-in, clipped press ripples to RudiPressable, enabled for settings rows; honors reduced motion and gesture cancellation.
-- Tightens settings/navigation spacing, exposes selected navigation color, and allows a null bottom-sheet closeIcon to hide the button.
-- Requires Flutter 3.47 / Dart 3.13; new components use primary constructors.
-- Adds floating navigation with interruptible movement and RTL support.
-- Floats `RudiPage.navigation` above page content and the bottom safe area automatically.
-- Adds grouped settings rows and animated switch tiles.
-- Allows app-owned icon sets through the optional bottom-sheet closeIcon widget.
-- Refines bottom sheets with header dragging, spring return, optional title/close control, safe keyboard insets and an internally scrollable body.
-- Makes system-bar icon brightness follow the app theme.
-- Adds a localized, swipeable RudiCalendar with accessible day states and full-cell touch targets.
-- Adds regression coverage for rapid navigation, drag cancellation, reduced motion and keyboard insets.
-- Keeps long-press-only pressables enabled without exposing an invalid keyboard activation action.
-- Preserves custom palettes in high-contrast mode and accepts explicit high-contrast themes in `RudiApp`.
-- Adds value equality to theme data, tokens and feedback policies for reliable inherited-theme updates.
-- Enforces and tests the package import boundary with an explicit dependency allowlist.
-- Verifies the minimum supported Flutter release and the latest stable release in CI.
-- Installs stretch overscroll through `RudiApp` on Android and Fuchsia instead
-  of Flutter's legacy glow, with `scrollBehavior` available for overrides.
-- Ensures `RudiPressable.enabled` consistently blocks pointer and keyboard
-  activation and treats callback-free pressables as disabled.
+- Adds `RudiApp` and `RudiPage` as the shared application and page foundation,
+  including theme selection, high-contrast themes, localization scopes,
+  app-wide messaging and stretch overscroll on Android and Fuchsia.
+- Adds floating navigation with contextual actions, interruptible selection
+  movement, RTL support and semantic theme colors.
+- Adds responsive dialogs, a reusable bottom-sheet shell and configurable
+  spring routes with drag handling, keyboard insets and scrollable content.
+- Adds grouped settings, icon and option rows, animated switches and expandable
+  controls.
+- Adds responsive buttons, icon buttons, pressables, hold/swipe confirmation,
+  text fields, number input and a duration ruler with preview offsets.
+- Adds empty, error and loading states, transient pill messages and theme-level
+  haptic and sound feedback policies.
+- Adds a localized, swipeable `RudiCalendar` with accessible day states and
+  full-cell touch targets.
+- Adds a font-independent component showcase and responsive device lab.
 
-## 0.1.0
+### Changed
+
+- Aligns dialogs, bottom sheets, buttons, fields, settings and navigation with
+  the component geometry and interaction patterns proven in Loop.
+- Makes buttons phone-wide and tablet-capped by default, with optional compact
+  width, minimum height and maximum width overrides.
+- Floats `RudiPage.navigation` above page content and the bottom safe area.
+- Refines the official light and dark palettes, selected-control colors and
+  floating-navigation color roles.
+- Keeps typography application-owned: the package ships no fonts and declares
+  no font family.
+- Adds value equality to theme data, tokens and feedback policies.
+- Aligns system-bar icon brightness with the active theme.
+
+### Fixed
+
+- Keeps long-press-only pressables enabled without exposing an invalid keyboard
+  activation action.
+- Ensures disabled and callback-free pressables consistently block pointer and
+  keyboard activation.
+- Preserves custom palettes in high-contrast mode and honors explicitly
+  supplied high-contrast themes.
+- Makes press ripples respect clipping, gesture cancellation and reduced-motion
+  preferences.
+
+### Quality
+
+- Adds regression coverage for rapid navigation, drag cancellation, reduced
+  motion, keyboard insets and accessible interaction states.
+- Enforces the package import boundary with an explicit dependency allowlist.
+- Verifies both the minimum supported Flutter version and current stable Flutter
+  in CI.
+
+## 0.1.0 - 2026-08-27
 
 - Introduces the widgets-only Rudi UI foundation and reusable components.
 - Adds a font-independent component showcase and device lab.
-- Refines hold, swipe, and duration-ruler interactions for consistent direct manipulation.
-- Adds a bottom-sheet demonstration and preview-only Google typography.
-- Resets hold and swipe actions after every successful confirmation.
-- Moves the publishable package to the repository root.
+- Adds Loop-derived press, hold, swipe and duration-ruler interactions.
+- Adds bottom-sheet demonstrations and preview-only Google typography.
+- Keeps the production package dependency-free except for the Flutter SDK.

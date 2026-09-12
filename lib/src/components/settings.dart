@@ -76,6 +76,7 @@ final class RudiSettingsTile extends StatelessWidget {
     this.selected = false,
     this.emphasized = false,
     this.toggled,
+    this.ink = true,
     super.key,
   });
 
@@ -113,7 +114,8 @@ final class RudiSettingsTile extends StatelessWidget {
        onPressed = (() => onChanged(!value)),
        selected = false,
        emphasized = false,
-       toggled = value;
+       toggled = value,
+       ink = true;
 
   /// Primary row label.
   final String title;
@@ -139,6 +141,9 @@ final class RudiSettingsTile extends StatelessWidget {
   /// Optional toggle state announced for switch-style rows.
   final bool? toggled;
 
+  /// Whether activation paints Rudi's clipped press ripple.
+  final bool ink;
+
   /// Minimum height shared by icon-first settings rows.
   static const height = 64.0;
 
@@ -159,7 +164,7 @@ final class RudiSettingsTile extends StatelessWidget {
       toggled: toggled,
       child: RudiPressable(
         onPressed: onPressed,
-        ink: true,
+        ink: ink,
         builder: (context, state) => AnimatedContainer(
           duration: MediaQuery.disableAnimationsOf(context)
               ? Duration.zero
@@ -472,6 +477,7 @@ final class const RudiSwitchTile({
   required final ValueChanged<bool>? onChanged,
   final String? subtitle,
   final Widget? leading,
+  final Widget? supporting,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -482,7 +488,17 @@ final class const RudiSwitchTile({
       subtitle: subtitle,
       leading: leading,
       onPressed: onChanged == null ? null : () => onChanged!(!value),
-      trailing: _RudiSwitchIndicator(value),
+      ink: supporting == null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (supporting != null) ...[
+            supporting!,
+            SizedBox(width: context.rudiTheme.spacing.xs),
+          ],
+          _RudiSwitchIndicator(value),
+        ],
+      ),
     ),
   );
 }

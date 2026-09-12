@@ -41,10 +41,10 @@ Or add the package manually:
 
 ```yaml
 dependencies:
-  rudi_ui: ^0.2.0
+  rudi_ui: ^0.3.0
 ```
 
-Rudi UI 0.2 requires Dart 3.13 and Flutter 3.47 or newer.
+Rudi UI 0.3 requires Dart 3.13 and Flutter 3.47 or newer.
 
 ## Quick start
 
@@ -67,28 +67,70 @@ void main() => runApp(
 );
 ```
 
-`RudiApp` installs the active Rudi theme, localization scopes, app-wide
-messenger and stretch overscroll behavior. `RudiApp.router` provides the same
-foundation for Router-based applications.
+`RudiApp` installs the active Rudi theme, transparent system bars, localization
+scopes, app-wide messenger and stretch overscroll behavior. `RudiApp.router`
+provides the same foundation for Router-based applications. Apps with another
+application shell can use `RudiSystemUi` directly.
+
+## Edge-to-edge pages
+
+`RudiPage` respects the top and bottom safe areas by default. Pages that own
+their status-bar header or let content scroll behind floating navigation can
+opt out of those insets independently:
+
+```dart
+RudiPage(
+  padding: EdgeInsets.zero,
+  safeAreaTop: false,
+  safeAreaBottom: false,
+  navigation: RudiFloatingNavigationBar(
+    destinations: destinations,
+    selectedIndex: selectedIndex,
+    onDestinationSelected: onDestinationSelected,
+  ),
+  child: const MyPageContent(),
+);
+```
+
+`RudiFloatingNavigationBar` handles its own safe area and outer spacing. A
+custom widget passed to `navigation` should do the same.
 
 ## Components
 
 | Area | Public API |
 | --- | --- |
-| App foundation | `RudiApp`, `RudiPage`, `RudiTheme`, `RudiThemeData` |
+| App foundation | `RudiApp`, `RudiPage`, `RudiSystemUi`, `RudiTheme`, `RudiThemeData` |
 | Actions | `RudiButton`, `RudiIconButton`, `RudiPressable` |
 | Confirmation | `RudiHoldToConfirm`, `RudiSwipeAction` |
 | Navigation | `RudiFloatingNavigationBar`, `RudiNavigationDestination`, `RudiNavigationAction` |
 | Forms | `RudiTextField`, `RudiTextFormField`, `RudiNumberInput`, `RudiDurationRuler` |
 | Settings | `RudiSettingsSection`, `RudiSettingsGroup`, `RudiSettingsTile`, `RudiSwitchTile`, `RudiOptionTile`, `RudiExpandableControl` |
 | Progress | `RudiLinearProgress`, `RudiProgressRing`, `RudiTickProgress` |
-| Feedback | `RudiMessenger`, `RudiSnack`, `RudiEmptyView`, `RudiErrorView`, `RudiLoadingView` |
+| Feedback | `RudiMessenger`, `RudiSnack`, `RudiInfoTooltip`, `RudiEmptyView`, `RudiErrorView`, `RudiLoadingView` |
 | Modals | `showRudiDialog`, `RudiDialog`, `showRudiBottomSheet`, `RudiBottomSheet` |
 | Date selection | `RudiCalendar` |
 
 The [live showcase](https://ztomz.github.io/rudi_ui/) includes interactive
 states, responsive device presets, light and dark themes, direct manipulation
 and the latest component APIs.
+
+## Contextual help
+
+Use `RudiInfoTooltip` for short explanations attached to an information action.
+It can also be placed directly in a switch row without making the switch and
+tooltip compete for the same tap:
+
+```dart
+RudiSwitchTile(
+  title: 'Comfortable motion',
+  value: comfortableMotion,
+  onChanged: setComfortableMotion,
+  supporting: const RudiInfoTooltip(
+    semanticLabel: 'Explain comfortable motion',
+    message: 'Uses softer transitions and respects reduced-motion settings.',
+  ),
+);
+```
 
 ## Theming
 

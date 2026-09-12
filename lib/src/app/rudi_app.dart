@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 
 import '../components/overlays.dart';
 import '../foundation/theme.dart';
-import '../foundation/tokens.dart';
 
 /// Selects how [RudiApp] resolves light and dark themes.
 enum RudiThemeMode {
@@ -171,18 +170,7 @@ final class RudiApp extends StatelessWidget {
                   data: IconThemeData(
                     color: context.rudiTheme.colors.foreground,
                   ),
-                  child: AnnotatedRegion<SystemUiOverlayStyle>(
-                    value:
-                        (useDark
-                                ? SystemUiOverlayStyle.light
-                                : SystemUiOverlayStyle.dark)
-                            .copyWith(
-                              statusBarColor: const Color(0x00000000),
-                              systemNavigationBarColor:
-                                  active.colors.background,
-                            ),
-                    child: RudiMessenger(child: themedChild),
-                  ),
+                  child: RudiSystemUi(child: RudiMessenger(child: themedChild)),
                 ),
               ),
             );
@@ -227,6 +215,36 @@ final class RudiApp extends StatelessWidget {
   }
 }
 
+/// Applies transparent system bars with icons matching the active Rudi theme.
+///
+/// [RudiApp] installs this automatically. Apps using another application shell
+/// can wrap their content with this widget to get the same system UI styling.
+final class RudiSystemUi extends StatelessWidget {
+  /// Creates Rudi UI's system-bar styling.
+  const RudiSystemUi({required this.child, super.key});
+
+  /// Content displayed below the system UI annotation.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = context.rudiTheme.brightness;
+    final baseStyle = brightness == Brightness.dark
+        ? SystemUiOverlayStyle.light
+        : SystemUiOverlayStyle.dark;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: baseStyle.copyWith(
+        statusBarColor: const Color(0x00000000),
+        systemNavigationBarColor: const Color(0x00000000),
+        systemNavigationBarDividerColor: const Color(0x00000000),
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: child,
+    );
+  }
+}
+
 /// A responsive page surface with safe-area and readable-width handling.
 final class RudiPage extends StatelessWidget {
   /// Creates a page surface.
@@ -235,6 +253,8 @@ final class RudiPage extends StatelessWidget {
     this.navigation,
     this.padding,
     this.constrainContent = false,
+    this.safeAreaTop = true,
+    this.safeAreaBottom = true,
     super.key,
   });
 
@@ -250,12 +270,20 @@ final class RudiPage extends StatelessWidget {
   /// Whether to center and constrain content on wide windows.
   final bool constrainContent;
 
+  /// Whether content should avoid the top display cutout and status bar.
+  final bool safeAreaTop;
+
+  /// Whether content should avoid the bottom display cutout and navigation bar.
+  final bool safeAreaBottom;
+
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
     Widget content = ColoredBox(
       color: theme.colors.background,
       child: SafeArea(
+        top: safeAreaTop,
+        bottom: safeAreaBottom,
         child: Padding(
           padding: padding ?? EdgeInsets.all(theme.spacing.md),
           child: child,
@@ -276,19 +304,10 @@ final class RudiPage extends StatelessWidget {
     if (navigation == null) {
       return content;
     }
-    final navigationMargin =
-        MediaQuery.sizeOf(context).width >= RudiBreakpoints.expanded
-        ? theme.spacing.xl
-        : theme.spacing.md;
     return Stack(
       children: [
         content,
-        PositionedDirectional(
-          start: theme.spacing.md,
-          end: theme.spacing.md,
-          bottom: MediaQuery.paddingOf(context).bottom + navigationMargin,
-          child: Center(child: navigation),
-        ),
+        PositionedDirectional(start: 0, end: 0, bottom: 0, child: navigation!),
       ],
     );
   }

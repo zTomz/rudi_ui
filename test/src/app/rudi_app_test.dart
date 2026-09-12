@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rudi_ui/rudi_ui.dart';
@@ -66,5 +67,83 @@ void main() {
     );
 
     expect(RudiTheme.of(tester.element(find.text('Explicit'))), highContrast);
+  });
+
+  testWidgets('uses transparent system bars without a navigation scrim', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const RudiApp(
+        themeMode: RudiThemeMode.dark,
+        home: Text('System UI', textDirection: TextDirection.ltr),
+      ),
+    );
+
+    final region = tester.widget<AnnotatedRegion<SystemUiOverlayStyle>>(
+      find.byType(AnnotatedRegion<SystemUiOverlayStyle>),
+    );
+    expect(region.value.statusBarColor, const Color(0x00000000));
+    expect(region.value.systemNavigationBarColor, const Color(0x00000000));
+    expect(
+      region.value.systemNavigationBarDividerColor,
+      const Color(0x00000000),
+    );
+    expect(region.value.systemNavigationBarContrastEnforced, isFalse);
+    expect(region.value.statusBarIconBrightness, Brightness.light);
+    expect(region.value.systemNavigationBarIconBrightness, Brightness.light);
+  });
+
+  testWidgets('RudiPage respects safe areas by default', (tester) async {
+    tester.view.physicalSize = const Size(400, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const RudiApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(400, 600),
+            padding: EdgeInsets.only(top: 30, bottom: 20),
+          ),
+          child: RudiPage(
+            padding: EdgeInsets.zero,
+            child: SizedBox.expand(key: ValueKey('page-content')),
+          ),
+        ),
+      ),
+    );
+
+    final rect = tester.getRect(find.byKey(const ValueKey('page-content')));
+    expect(rect, const Rect.fromLTWH(0, 30, 400, 550));
+  });
+
+  testWidgets('RudiPage can extend through top and bottom safe areas', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const RudiApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(400, 600),
+            padding: EdgeInsets.only(top: 30, bottom: 20),
+          ),
+          child: RudiPage(
+            padding: EdgeInsets.zero,
+            safeAreaTop: false,
+            safeAreaBottom: false,
+            child: SizedBox.expand(key: ValueKey('page-content')),
+          ),
+        ),
+      ),
+    );
+
+    final rect = tester.getRect(find.byKey(const ValueKey('page-content')));
+    expect(rect, const Rect.fromLTWH(0, 0, 400, 600));
   });
 }

@@ -815,6 +815,10 @@ final class _StatesPage extends StatelessWidget {
           title: 'Comfortable motion',
           subtitle: 'Preview component transitions',
           leading: const RudiGlyph(RudiGlyphType.info),
+          supporting: const RudiInfoTooltip(
+            semanticLabel: 'Explain comfortable motion',
+            message: 'Uses softer transitions and follows the system reduced-motion preference.',
+          ),
           value: motion,
           onChanged: onMotionChanged,
         ),

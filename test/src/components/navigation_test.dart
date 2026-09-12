@@ -12,20 +12,30 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      const RudiApp(
+      RudiApp(
         home: MediaQuery(
-          data: MediaQueryData(
+          data: const MediaQueryData(
             size: Size(400, 600),
             padding: EdgeInsets.only(bottom: 24),
           ),
           child: RudiPage(
             padding: EdgeInsets.zero,
-            navigation: SizedBox(
-              key: ValueKey('navigation'),
-              width: 200,
-              height: 68,
+            navigation: RudiFloatingNavigationBar(
+              key: const ValueKey('navigation'),
+              selectedIndex: 0,
+              onDestinationSelected: (_) {},
+              destinations: const [
+                RudiNavigationDestination(
+                  icon: RudiGlyph(RudiGlyphType.info),
+                  label: 'One',
+                ),
+                RudiNavigationDestination(
+                  icon: RudiGlyph(RudiGlyphType.chevron),
+                  label: 'Two',
+                ),
+              ],
             ),
-            child: SizedBox.expand(key: ValueKey('content')),
+            child: const SizedBox.expand(key: ValueKey('content')),
           ),
         ),
       ),
@@ -34,9 +44,17 @@ void main() {
     final content = tester.getRect(find.byKey(const ValueKey('content')));
     final navigation = tester.getRect(find.byKey(const ValueKey('navigation')));
     expect(content, const Rect.fromLTWH(0, 0, 400, 576));
-    expect(navigation.center.dx, content.center.dx);
-    expect(navigation.bottom, content.bottom - 16);
-    expect(navigation.top, lessThan(content.bottom));
+    expect(navigation.bottom, 600);
+
+    final container = tester.getRect(
+      find.descendant(
+        of: find.byKey(const ValueKey('navigation')),
+        matching: find.byType(DecoratedBox).first,
+      ),
+    );
+    // Safe area bottom inset (24) + RudiSpacing.lg (24) = 48dp from screen bottom.
+    expect(container.bottom, 600 - 48);
+    expect(container.center.dx, 200);
   });
 
   testWidgets('floating navigation changes the selected destination', (

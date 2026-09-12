@@ -14,6 +14,7 @@ export 'src/components/navigation.dart';
 export 'src/components/overlays.dart';
 export 'src/components/progress.dart';
 export 'src/components/settings.dart';
+export 'src/components/tooltip.dart';
 export 'src/foundation/feedback.dart';
 export 'src/foundation/theme.dart';
 export 'src/foundation/tokens.dart';
