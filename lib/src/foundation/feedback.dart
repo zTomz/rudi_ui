@@ -45,4 +45,15 @@ final class RudiFeedbackPolicy {
       await HapticFeedback.heavyImpact();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is RudiFeedbackPolicy &&
+            hapticsEnabled == other.hapticsEnabled &&
+            soundsEnabled == other.soundsEnabled;
+  }
+
+  @override
+  int get hashCode => Object.hash(hapticsEnabled, soundsEnabled);
 }

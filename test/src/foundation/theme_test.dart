@@ -31,7 +31,7 @@ void main() {
       expect(middle.brightness, Brightness.dark);
     });
 
-    test('uses the Loop-aligned dark palette', () {
+    test('uses distinct dark surfaces', () {
       final dark = RudiThemeData.dark();
 
       expect(dark.colors.background, const Color(0xFF111214));
@@ -41,6 +41,20 @@ void main() {
       expect(dark.colors.primary, const Color(0xFF33363B));
       expect(dark.colors.onPrimary, const Color(0xFFF2F4F5));
       expect(dark.colors.accent, const Color(0xFF128FE2));
+    });
+
+    test('uses value equality for equivalent theme graphs', () {
+      final first = RudiThemeData.light(
+        feedback: const RudiFeedbackPolicy(
+          hapticsEnabled: false,
+          soundsEnabled: false,
+        ),
+      );
+      final second = RudiThemeData.light(feedback: RudiFeedbackPolicy.silent);
+
+      expect(first, second);
+      expect(first.hashCode, second.hashCode);
+      expect(first.copyWith(colors: first.colors.copyWith()), first);
     });
   });
 }

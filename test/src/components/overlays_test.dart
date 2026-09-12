@@ -26,6 +26,55 @@ void main() {
     expect(find.text('Second'), findsOneWidget);
   });
 
+  testWidgets('RudiSnack uses the shared responsive Loop geometry', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 700);
+    addTearDown(tester.view.reset);
+    final controller = RudiMessengerController();
+
+    await tester.pumpWidget(
+      RudiApp(
+        home: RudiMessenger(
+          controller: controller,
+          child: const RudiPage(child: SizedBox.expand()),
+        ),
+      ),
+    );
+    controller.show(
+      const RudiSnack(
+        message: 'Saved everywhere',
+        icon: RudiGlyph(RudiGlyphType.check),
+        maxLines: null,
+      ),
+    );
+    await tester.pump();
+
+    final theme = RudiTheme.of(tester.element(find.text('Saved everywhere')));
+    final snackSurface = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration! as BoxDecoration).color == theme.colors.primary &&
+          (widget.decoration! as BoxDecoration).borderRadius ==
+              BorderRadius.circular(theme.radii.pill),
+    );
+    final iconChip = find.byWidgetPredicate(
+      (widget) =>
+          widget is Container &&
+          widget.decoration is BoxDecoration &&
+          (widget.decoration! as BoxDecoration).shape == BoxShape.circle,
+    );
+    final message = tester.widget<Text>(find.text('Saved everywhere'));
+
+    expect(tester.getSize(snackSurface).width, 560);
+    expect(tester.getSize(iconChip), const Size.square(32));
+    expect(message.maxLines, isNull);
+    expect(message.overflow, TextOverflow.visible);
+    expect(message.style?.color, theme.colors.onPrimary);
+  });
+
   testWidgets('dialog opens and can be dismissed through its action', (
     tester,
   ) async {
@@ -94,7 +143,10 @@ final class _SheetTestApp extends StatelessWidget {
             onPressed: () => showRudiBottomSheet<void>(
               context: context,
               barrierLabel: 'Dismiss sheet',
-              builder: (_) => const Text('Sheet content'),
+              builder: (_) => const RudiBottomSheet(
+                title: Text('Sheet'),
+                children: [Text('Sheet content')],
+              ),
             ),
           ),
         ),

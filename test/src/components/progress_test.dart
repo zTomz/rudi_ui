@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rudi_ui/rudi_ui.dart';
 
 void main() {
-  testWidgets('duration ruler scrolls and snaps like the Loop control', (
+  testWidgets('duration ruler scrolls and snaps to the selected value', (
     tester,
   ) async {
     Duration? selected;
@@ -43,6 +43,29 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('duration ruler preview offset does not change its value', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _TestApp(
+        child: RudiDurationRuler(
+          value: const Duration(minutes: 5),
+          min: Duration.zero,
+          max: const Duration(minutes: 10),
+          previewOffset: 84,
+          semanticLabel: 'Duration',
+          semanticValueBuilder: (value) => '${value.inSeconds} seconds',
+          onChanged: (_) {},
+        ),
+      ),
+    );
+
+    final semantics = tester
+        .getSemantics(find.byType(RudiDurationRuler))
+        .getSemanticsData();
+    expect(semantics.value, '300 seconds');
   });
 }
 

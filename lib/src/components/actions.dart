@@ -40,19 +40,45 @@ typedef RudiPressableBuilder = Widget Function(
 final class RudiPressable extends StatefulWidget {
   /// Creates a pressable control.
   const RudiPressable({
-    required this.builder,
+    this.builder,
+    this.child,
     this.onPressed,
     this.onLongPress,
     this.semanticLabel,
+    this.enabled = true,
     this.autofocus = false,
     this.enableFeedback = true,
     this.ink = false,
+    this.pressedScale = 1,
     this.cursor = SystemMouseCursors.click,
     super.key,
-  });
+  }) : assert(
+         (builder == null) != (child == null),
+         'Provide exactly one of builder or child.',
+       ),
+       assert(pressedScale > 0 && pressedScale <= 1);
+
+  /// Creates a pressable that applies Loop-style scale feedback to [child].
+  const RudiPressable.scale({
+    required this.child,
+    this.onPressed,
+    this.onLongPress,
+    this.semanticLabel,
+    this.enabled = true,
+    this.autofocus = false,
+    this.enableFeedback = true,
+    this.ink = false,
+    this.pressedScale = .96,
+    this.cursor = SystemMouseCursors.click,
+    super.key,
+  }) : builder = null,
+       assert(pressedScale > 0 && pressedScale <= 1);
 
   /// Builds the control for the current interaction state.
-  final RudiPressableBuilder builder;
+  final RudiPressableBuilder? builder;
+
+  /// Static content used when interaction-state-specific rendering is unnecessary.
+  final Widget? child;
 
   /// Called when the control is activated.
   final VoidCallback? onPressed;
@@ -63,6 +89,9 @@ final class RudiPressable extends StatefulWidget {
   /// Accessibility label for controls without visible text.
   final String? semanticLabel;
 
+  /// Whether pointer and keyboard interaction feedback is enabled.
+  final bool enabled;
+
   /// Whether the control requests focus initially.
   final bool autofocus;
 
@@ -71,6 +100,9 @@ final class RudiPressable extends StatefulWidget {
 
   /// Paints a clipped ripple above the content when activated.
   final bool ink;
+
+  /// Scale applied while pressed. Use `1` to disable scale feedback.
+  final double pressedScale;
 
   /// Mouse cursor used while enabled.
   final MouseCursor cursor;
@@ -114,14 +146,17 @@ final class _RudiPressableState extends State<RudiPressable>
     super.dispose();
   }
 
-  bool get _enabled => widget.onPressed != null;
+  bool get _enabled =>
+      widget.enabled &&
+      (widget.onPressed != null || widget.onLongPress != null);
 
   void _activate() {
-    if (!_enabled) {
+    if (!_enabled || widget.onPressed == null) {
       return;
     }
     if (widget.enableFeedback) {
-      unawaited(context.rudiTheme.feedback.selection());
+      final feedback = RudiTheme.maybeOf(context)?.feedback;
+      if (feedback != null) unawaited(feedback.selection());
     }
     widget.onPressed!();
   }
@@ -134,12 +169,15 @@ final class _RudiPressableState extends State<RudiPressable>
 
   @override
   Widget build(BuildContext context) {
+    final theme = RudiTheme.maybeOf(context);
+    final animationsDisabled = MediaQuery.disableAnimationsOf(context);
     final state = RudiInteractionState(
       enabled: _enabled,
       hovered: _hovered,
       focused: _focused,
       pressed: _pressed,
     );
+    final content = widget.builder?.call(context, state) ?? widget.child!;
     return Semantics(
       button: true,
       enabled: _enabled,
@@ -151,18 +189,19 @@ final class _RudiPressableState extends State<RudiPressable>
         onShowHoverHighlight: (value) => setState(() => _hovered = value),
         onShowFocusHighlight: (value) => setState(() => _focused = value),
         actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) {
-              _beginInk(null);
-              _endInk();
-              _activate();
-              return null;
-            },
-          ),
+          if (widget.onPressed != null)
+            ActivateIntent: CallbackAction<ActivateIntent>(
+              onInvoke: (_) {
+                _beginInk(null);
+                _endInk();
+                _activate();
+                return null;
+              },
+            ),
         },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: _enabled ? _activate : null,
+          onTap: _enabled && widget.onPressed != null ? _activate : null,
           onLongPress: _enabled ? widget.onLongPress : null,
           onTapDown: _enabled
               ? (details) {
@@ -182,18 +221,26 @@ final class _RudiPressableState extends State<RudiPressable>
                   _setPressed(false);
                 }
               : null,
-          child: CustomPaint(
-            foregroundPainter: widget.ink && _enabled
-                ? _RudiInkPainter(
-                    radius: _inkRadius,
-                    opacity: _inkOpacity,
-                    origin: _inkOrigin,
-                    color: context.rudiTheme.colors.foreground,
-                    reduced: MediaQuery.disableAnimationsOf(context),
-                    pressed: _pressed,
-                  )
-                : null,
-            child: widget.builder(context, state),
+          child: AnimatedScale(
+            scale: _pressed ? widget.pressedScale : 1,
+            duration: animationsDisabled
+                ? Duration.zero
+                : theme?.motion.fast ?? const Duration(milliseconds: 120),
+            curve: theme?.motion.standardCurve ?? Curves.easeOutCubic,
+            child: CustomPaint(
+              foregroundPainter: widget.ink && _enabled
+                  ? _RudiInkPainter(
+                      radius: _inkRadius,
+                      opacity: _inkOpacity,
+                      origin: _inkOrigin,
+                      color:
+                          theme?.colors.foreground ?? const Color(0xFF171517),
+                      reduced: animationsDisabled,
+                      pressed: _pressed,
+                    )
+                  : null,
+              child: content,
+            ),
           ),
         ),
       ),
@@ -273,10 +320,13 @@ final class RudiButton extends StatelessWidget {
     this.leading,
     this.variant = RudiButtonVariant.primary,
     this.loading = false,
-    this.expand = false,
+    this.expand = true,
+    this.minHeight = 56,
+    this.maxWidth = 560,
     this.autofocus = false,
     super.key,
-  });
+  }) : assert(minHeight >= 48),
+       assert(maxWidth == null || maxWidth > 0);
 
   /// Visible action label.
   final String label;
@@ -293,8 +343,14 @@ final class RudiButton extends StatelessWidget {
   /// Whether an indeterminate progress mark replaces [leading].
   final bool loading;
 
-  /// Whether the button fills the available width.
+  /// Whether the button fills compact widths and remains centered at [maxWidth].
   final bool expand;
+
+  /// Minimum button height. Values below 48 are rejected for accessibility.
+  final double minHeight;
+
+  /// Maximum expanded width. Set to null to fill every bounded width.
+  final double? maxWidth;
 
   /// Whether the button requests focus initially.
   final bool autofocus;
@@ -312,7 +368,7 @@ final class RudiButton extends StatelessWidget {
         ? Duration.zero
         : theme.motion.fast;
 
-    return RudiPressable(
+    final button = RudiPressable(
       onPressed: loading ? null : onPressed,
       autofocus: autofocus,
       builder: (context, state) {
@@ -326,11 +382,11 @@ final class RudiButton extends StatelessWidget {
             opacity: state.enabled ? 1 : 0.48,
             duration: duration,
             child: Container(
-              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+              constraints: BoxConstraints(minHeight: minHeight, minWidth: 48),
               width: expand ? double.infinity : null,
               padding: EdgeInsets.symmetric(
                 horizontal: theme.spacing.lg,
-                vertical: theme.spacing.sm,
+                vertical: 14,
               ),
               decoration: BoxDecoration(
                 color: state.hovered
@@ -365,6 +421,20 @@ final class RudiButton extends StatelessWidget {
               ),
             ),
           ),
+        );
+      },
+    );
+    if (!expand) return button;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final width = availableWidth.isFinite
+            ? math.min(availableWidth, maxWidth ?? availableWidth)
+            : null;
+        return Align(
+          alignment: AlignmentDirectional.center,
+          child: SizedBox(width: width, child: button),
         );
       },
     );
@@ -752,7 +822,6 @@ final class RudiSwipeAction extends StatefulWidget {
     this.semanticHint,
     this.completedSemanticHint,
     this.loadingSemanticHint,
-    this.hapticsEnabled = true,
     this.onHapticPulse,
     this.onHapticCompleted,
     super.key,
@@ -792,10 +861,7 @@ final class RudiSwipeAction extends StatefulWidget {
   /// Localized loading announcement.
   final String? loadingSemanticHint;
 
-  /// Whether haptic callbacks are active.
-  final bool hapticsEnabled;
-
-  /// Called repeatedly with current drag progress.
+  /// Called repeatedly with current drag progress when theme haptics are enabled.
   final ValueChanged<double>? onHapticPulse;
 
   /// Called once when completion begins.
@@ -873,9 +939,10 @@ final class _RudiSwipeActionState extends State<RudiSwipeAction>
       return;
     }
     _hapticTimer?.cancel();
-    if (widget.hapticsEnabled) {
+    if (context.rudiTheme.feedback.hapticsEnabled) {
       widget.onHapticCompleted?.call();
     }
+    unawaited(context.rudiTheme.feedback.confirmation());
     setState(() {
       if (widget.completed == null) {
         _internalCompleted = true;
@@ -970,7 +1037,7 @@ final class _RudiSwipeActionState extends State<RudiSwipeAction>
       1,
       width - handleSize - (_RudiSwipeMetrics.idleInset * 2),
     );
-    if (widget.hapticsEnabled) {
+    if (context.rudiTheme.feedback.hapticsEnabled) {
       widget.onHapticPulse?.call(progress);
       _scheduleHapticPulse();
     }

@@ -68,6 +68,48 @@ void main() {
     expect(selectedIndex, 1);
   });
 
+  testWidgets('compact navigation fits a contextual action on narrow layouts', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      RudiApp(
+        home: Center(
+          child: SizedBox(
+            width: 350,
+            child: RudiFloatingNavigationBar(
+              compact: true,
+              selectedIndex: 0,
+              onDestinationSelected: (_) {},
+              destinations: [
+                RudiNavigationDestination(
+                  icon: const RudiGlyph(RudiGlyphType.info),
+                  label: 'Overview',
+                  action: RudiNavigationAction(
+                    icon: const RudiGlyph(RudiGlyphType.check),
+                    label: 'Create',
+                    onPressed: () {},
+                  ),
+                ),
+                const RudiNavigationDestination(
+                  icon: RudiGlyph(RudiGlyphType.chevron),
+                  label: 'Controls',
+                ),
+                const RudiNavigationDestination(
+                  icon: RudiGlyph(RudiGlyphType.close),
+                  label: 'Settings',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(RudiFloatingNavigationBar)).width, 350);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final brightness in Brightness.values) {
     testWidgets('floating navigation uses semantic colors in $brightness', (
       tester,
@@ -104,17 +146,19 @@ void main() {
         matching: find.byType(DecoratedBox),
       );
       final container = tester.widget<DecoratedBox>(decorations.at(0));
-      final indicator = tester.widget<DecoratedBox>(decorations.at(1));
       expect(
         (container.decoration as BoxDecoration).color,
         theme.colors.primary,
       );
-      expect(
-        (container.decoration as BoxDecoration).boxShadow,
-        brightness == Brightness.dark ? isEmpty : isNotEmpty,
+      expect((container.decoration as BoxDecoration).boxShadow, isNull);
+      final selectedSurface = tester.widget<AnimatedContainer>(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-0')),
+          matching: find.byType(AnimatedContainer),
+        ),
       );
       expect(
-        (indicator.decoration as BoxDecoration).color,
+        (selectedSurface.decoration as BoxDecoration).color,
         theme.colors.background,
       );
 

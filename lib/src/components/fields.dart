@@ -6,6 +6,9 @@ import 'actions.dart';
 
 /// A full-featured, widgets-only text input with Rudi styling.
 final class RudiTextField extends StatefulWidget {
+  /// Default minimum height shared by single-line Rudi inputs.
+  static const defaultMinHeight = 64.0;
+
   /// Creates a text field.
   const RudiTextField({
     this.controller,
@@ -31,6 +34,7 @@ final class RudiTextField extends StatefulWidget {
     this.autocorrect = true,
     this.enableSuggestions = true,
     this.contextMenuBuilder,
+    this.minHeight = defaultMinHeight,
     super.key,
   });
 
@@ -103,6 +107,9 @@ final class RudiTextField extends StatefulWidget {
   /// Optional replacement for Rudi UI's default context menu.
   final EditableTextContextMenuBuilder? contextMenuBuilder;
 
+  /// Minimum height of the decorated input surface.
+  final double minHeight;
+
   @override
   State<RudiTextField> createState() => _RudiTextFieldState();
 }
@@ -155,7 +162,7 @@ final class _RudiTextFieldState extends State<RudiTextField> {
                   duration: MediaQuery.disableAnimationsOf(context)
                       ? Duration.zero
                       : theme.motion.fast,
-                  constraints: const BoxConstraints(minHeight: 56),
+                  constraints: BoxConstraints(minHeight: widget.minHeight),
                   padding: EdgeInsets.symmetric(
                     horizontal: theme.spacing.md,
                     vertical: theme.spacing.sm,

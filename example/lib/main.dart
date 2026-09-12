@@ -80,9 +80,9 @@ final class _ShowcaseState extends State<_Showcase> {
             children: [
               RudiButton(
                 label: 'Show message',
-                onPressed: () => RudiMessenger.of(
-                  context,
-                ).show(const RudiSnack(message: 'Hello from Rudi UI')),
+                onPressed: () =>
+                    RudiMessenger.of(context)
+                        .show(const RudiSnack(message: 'Hello from Rudi UI')),
               ),
               RudiButton(
                 label: 'Open dialog',
@@ -181,9 +181,9 @@ final class _ShowcaseState extends State<_Showcase> {
           const SizedBox(height: 32),
           RudiHoldToConfirm(
             label: 'Hold to confirm',
-            onConfirmed: () => RudiMessenger.of(
-              context,
-            ).show(const RudiSnack(message: 'Confirmed')),
+            onConfirmed: () =>
+                RudiMessenger.of(context)
+                    .show(const RudiSnack(message: 'Confirmed')),
           ),
           const SizedBox(height: 48),
         ],

@@ -17,6 +17,28 @@ enum RudiThemeMode {
   dark,
 }
 
+/// Platform-aware scrolling without Android's legacy overscroll glow.
+final class RudiScrollBehavior extends ScrollBehavior {
+  /// Creates Rudi UI's default scroll behavior.
+  const RudiScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return switch (getPlatform(context)) {
+      TargetPlatform.android ||
+      TargetPlatform.fuchsia => StretchingOverscrollIndicator(
+        axisDirection: details.direction,
+        child: child,
+      ),
+      _ => child,
+    };
+  }
+}
+
 /// A widgets-only application shell configured for Rudi UI.
 final class RudiApp extends StatelessWidget {
   /// Creates a navigator-based Rudi application.
@@ -25,11 +47,14 @@ final class RudiApp extends StatelessWidget {
     this.title = '',
     this.theme,
     this.darkTheme,
+    this.highContrastTheme,
+    this.highContrastDarkTheme,
     this.themeMode = RudiThemeMode.system,
     this.builder,
     this.locale,
     this.localizationsDelegates,
     this.supportedLocales = const <Locale>[Locale('en', 'US')],
+    this.scrollBehavior = const RudiScrollBehavior(),
     this.debugShowCheckedModeBanner = false,
     super.key,
   }) : routerConfig = null;
@@ -40,11 +65,14 @@ final class RudiApp extends StatelessWidget {
     this.title = '',
     this.theme,
     this.darkTheme,
+    this.highContrastTheme,
+    this.highContrastDarkTheme,
     this.themeMode = RudiThemeMode.system,
     this.builder,
     this.locale,
     this.localizationsDelegates,
     this.supportedLocales = const <Locale>[Locale('en', 'US')],
+    this.scrollBehavior = const RudiScrollBehavior(),
     this.debugShowCheckedModeBanner = false,
     super.key,
   }) : home = null;
@@ -64,6 +92,12 @@ final class RudiApp extends StatelessWidget {
   /// Dark theme. Defaults to the official Rudi dark theme.
   final RudiThemeData? darkTheme;
 
+  /// Optional light theme used when the platform requests high contrast.
+  final RudiThemeData? highContrastTheme;
+
+  /// Optional dark theme used when the platform requests high contrast.
+  final RudiThemeData? highContrastDarkTheme;
+
   /// Theme-selection behavior.
   final RudiThemeMode themeMode;
 
@@ -78,6 +112,9 @@ final class RudiApp extends StatelessWidget {
 
   /// Locales supported by the consuming application.
   final Iterable<Locale> supportedLocales;
+
+  /// Scrolling behavior installed for the application.
+  final ScrollBehavior scrollBehavior;
 
   /// Whether to show Flutter's debug banner.
   final bool debugShowCheckedModeBanner;
@@ -96,21 +133,26 @@ final class RudiApp extends StatelessWidget {
       };
       var active = useDark ? dark : light;
       if (media?.highContrast ?? false) {
-        final contrastTheme = useDark
-            ? RudiThemeData.dark(
-                accent: active.colors.accent,
-                highContrast: true,
-                feedback: active.feedback,
-              )
-            : RudiThemeData.light(
-                accent: active.colors.accent,
-                highContrast: true,
-                feedback: active.feedback,
-              );
-        active = active.copyWith(
-          colors: contrastTheme.colors,
-          highContrast: true,
-        );
+        final explicitHighContrast = useDark
+            ? highContrastDarkTheme
+            : highContrastTheme;
+        if (explicitHighContrast != null) {
+          active = explicitHighContrast;
+        } else if ((useDark ? darkTheme : theme) == null) {
+          active = useDark
+              ? RudiThemeData.dark(
+                  accent: active.colors.accent,
+                  highContrast: true,
+                  feedback: active.feedback,
+                )
+              : RudiThemeData.light(
+                  accent: active.colors.accent,
+                  highContrast: true,
+                  feedback: active.feedback,
+                );
+        } else {
+          active = active.copyWith(highContrast: true);
+        }
       }
       final content = child ?? const SizedBox.shrink();
       return AnimatedRudiTheme(
@@ -121,20 +163,26 @@ final class RudiApp extends StatelessWidget {
         child: Builder(
           builder: (context) {
             final themedChild = builder?.call(context, content) ?? content;
-            return DefaultTextStyle(
-              style: context.rudiTheme.text.body,
-              child: IconTheme(
-                data: IconThemeData(color: context.rudiTheme.colors.foreground),
-                child: AnnotatedRegion<SystemUiOverlayStyle>(
-                  value:
-                      (useDark
-                              ? SystemUiOverlayStyle.light
-                              : SystemUiOverlayStyle.dark)
-                          .copyWith(
-                            statusBarColor: const Color(0x00000000),
-                            systemNavigationBarColor: active.colors.background,
-                          ),
-                  child: RudiMessenger(child: themedChild),
+            return ScrollConfiguration(
+              behavior: scrollBehavior,
+              child: DefaultTextStyle(
+                style: context.rudiTheme.text.body,
+                child: IconTheme(
+                  data: IconThemeData(
+                    color: context.rudiTheme.colors.foreground,
+                  ),
+                  child: AnnotatedRegion<SystemUiOverlayStyle>(
+                    value:
+                        (useDark
+                                ? SystemUiOverlayStyle.light
+                                : SystemUiOverlayStyle.dark)
+                            .copyWith(
+                              statusBarColor: const Color(0x00000000),
+                              systemNavigationBarColor:
+                                  active.colors.background,
+                            ),
+                    child: RudiMessenger(child: themedChild),
+                  ),
                 ),
               ),
             );

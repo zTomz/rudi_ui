@@ -74,8 +74,46 @@ final class RudiSettingsTile extends StatelessWidget {
     this.trailing,
     this.onPressed,
     this.selected = false,
+    this.emphasized = false,
+    this.toggled,
     super.key,
   });
+
+  /// Creates the icon-first settings row used by Rudi applications.
+  factory RudiSettingsTile.icon({
+    required IconData icon,
+    required String label,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+    bool iconFilled = false,
+    bool emphasized = false,
+    Key? key,
+  }) => RudiSettingsTile(
+    key: key,
+    title: label,
+    subtitle: subtitle,
+    leading: Icon(icon, fill: iconFilled ? 1 : 0),
+    trailing: trailing,
+    onPressed: onTap,
+    emphasized: emphasized,
+  );
+
+  /// Creates an icon-first setting row with Rudi's switch indicator.
+  RudiSettingsTile.switchTile({
+    required IconData icon,
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    super.key,
+  }) : title = label,
+       subtitle = null,
+       leading = Icon(icon, fill: value ? 1 : 0),
+       trailing = _RudiSwitchIndicator(value),
+       onPressed = (() => onChanged(!value)),
+       selected = false,
+       emphasized = false,
+       toggled = value;
 
   /// Primary row label.
   final String title;
@@ -95,11 +133,30 @@ final class RudiSettingsTile extends StatelessWidget {
   /// Whether the row is currently selected.
   final bool selected;
 
+  /// Whether the row uses the accent treatment for a destructive or key action.
+  final bool emphasized;
+
+  /// Optional toggle state announced for switch-style rows.
+  final bool? toggled;
+
+  /// Minimum height shared by icon-first settings rows.
+  static const height = 64.0;
+
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
+    final foreground = selected
+        ? theme.colors.background
+        : emphasized
+        ? theme.colors.onAccent
+        : theme.colors.foreground;
+    final secondary = selected
+        ? foreground.withValues(alpha: 0.67)
+        : foreground.withAlpha(170);
+    final accessoryColor = selected ? foreground : secondary;
     return Semantics(
       selected: selected,
+      toggled: toggled,
       child: RudiPressable(
         onPressed: onPressed,
         ink: true,
@@ -107,13 +164,15 @@ final class RudiSettingsTile extends StatelessWidget {
           duration: MediaQuery.disableAnimationsOf(context)
               ? Duration.zero
               : theme.motion.fast,
-          constraints: const BoxConstraints(minHeight: 60),
+          constraints: const BoxConstraints(minHeight: height),
           padding: EdgeInsets.symmetric(
             horizontal: theme.spacing.md,
-            vertical: 12,
+            vertical: theme.spacing.sm,
           ),
           color: selected
               ? theme.colors.foreground
+              : emphasized
+              ? theme.colors.accent
               : state.hovered
               ? theme.colors.surface
               : const Color(0x00000000),
@@ -121,11 +180,7 @@ final class RudiSettingsTile extends StatelessWidget {
             children: [
               if (leading != null) ...[
                 IconTheme(
-                  data: IconThemeData(
-                    color: selected
-                        ? theme.colors.background
-                        : theme.colors.foreground,
-                  ),
+                  data: IconThemeData(color: accessoryColor),
                   child: leading!,
                 ),
                 SizedBox(width: theme.spacing.md),
@@ -138,20 +193,15 @@ final class RudiSettingsTile extends StatelessWidget {
                     Text(
                       title,
                       style: theme.text.label.copyWith(
-                        color: selected
-                            ? theme.colors.background
-                            : theme.colors.foreground,
+                        color: foreground,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     if (subtitle case final text?) ...[
                       SizedBox(height: theme.spacing.xs),
                       Text(
                         text,
-                        style: theme.text.caption.copyWith(
-                          color: selected
-                              ? theme.colors.background.withValues(alpha: 0.67)
-                              : theme.colors.mutedForeground,
-                        ),
+                        style: theme.text.caption.copyWith(color: secondary),
                       ),
                     ],
                   ],
@@ -159,17 +209,9 @@ final class RudiSettingsTile extends StatelessWidget {
               ),
               SizedBox(width: theme.spacing.sm),
               IconTheme(
-                data: IconThemeData(
-                  color: selected
-                      ? theme.colors.background
-                      : theme.colors.mutedForeground,
-                ),
+                data: IconThemeData(color: accessoryColor),
                 child: DefaultTextStyle.merge(
-                  style: TextStyle(
-                    color: selected
-                        ? theme.colors.background
-                        : theme.colors.mutedForeground,
-                  ),
+                  style: TextStyle(color: accessoryColor),
                   child:
                       trailing ??
                       (onPressed == null
@@ -330,7 +372,7 @@ final class _RudiExpandableControlState extends State<RudiExpandableControl>
   }
 }
 
-/// Loop's separated rows, grouped outer corners, accent label and bold titles.
+/// Separated rows with grouped outer corners, accent labels and bold titles.
 final class const RudiSettingsGroup({
   final String? title,
   required final List<Widget> children,
@@ -356,8 +398,12 @@ final class const RudiSettingsGroup({
         for (final (index, child) in children.indexed) ...[
           ClipRRect(
             borderRadius: BorderRadius.vertical(
-              top: Radius.circular(index == 0 ? 28 : 5),
-              bottom: Radius.circular(index == children.length - 1 ? 28 : 5),
+              top: Radius.circular(
+                index == 0 ? theme.radii.xl : theme.radii.md,
+              ),
+              bottom: Radius.circular(
+                index == children.length - 1 ? theme.radii.xl : theme.radii.md,
+              ),
             ),
             child: ColoredBox(
               color: theme.colors.surface,
@@ -379,7 +425,7 @@ final class const RudiSettingsGroup({
               ),
             ),
           ),
-          if (index < children.length - 1) const SizedBox(height: 3),
+          if (index < children.length - 1) SizedBox(height: theme.spacing.xs),
         ],
       ],
     );

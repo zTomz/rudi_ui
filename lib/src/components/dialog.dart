@@ -1,8 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../foundation/theme.dart';
-
-export 'bottom_sheet.dart' show showRudiBottomSheet;
 
 /// Shows a modal Rudi dialog.
 Future<T?> showRudiDialog<T>({
@@ -79,93 +79,59 @@ final class RudiDialog extends StatelessWidget {
       child: Center(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final horizontalMargin = constraints.maxWidth < 480
-                ? theme.spacing.md
+            final dialogPadding = constraints.maxWidth < 420
+                ? theme.spacing.lg
                 : theme.spacing.xl;
-            final maxWidth = expanded ? 720.0 : 520.0;
-            return ConstrainedBox(
+            final maxContentWidth = math.max(
+              220.0,
+              constraints.maxWidth -
+                  (theme.spacing.md * 2) -
+                  (dialogPadding * 2),
+            );
+            final contentWidth = expanded
+                ? math.min(600.0, maxContentWidth)
+                : math.min(290.0, maxContentWidth);
+            return Container(
+              margin: EdgeInsets.all(theme.spacing.md),
               constraints: BoxConstraints(
-                maxWidth: maxWidth,
-                maxHeight: constraints.maxHeight - theme.spacing.xl,
+                maxWidth: contentWidth + dialogPadding * 2,
+                maxHeight: constraints.maxHeight - theme.spacing.md * 2,
               ),
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
-                padding: EdgeInsets.all(theme.spacing.lg),
-                decoration: BoxDecoration(
-                  color: theme.colors.surfaceContainer,
-                  borderRadius: BorderRadius.circular(theme.radii.xl),
-                  border: Border.all(color: theme.colors.outline),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        if (icon != null) ...[
-                          IconTheme(
-                            data: IconThemeData(
-                              color: theme.colors.accent,
-                              size: 28,
-                            ),
-                            child: icon!,
-                          ),
-                          SizedBox(width: theme.spacing.md),
-                        ],
-                        Expanded(
-                          child: DefaultTextStyle(
-                            style: theme.text.headline,
-                            child: title,
-                          ),
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: theme.colors.background,
+                borderRadius: BorderRadius.circular(theme.radii.xl),
+              ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(dialogPadding),
+                child: SizedBox(
+                  width: contentWidth,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (expanded)
+                        _ExpandedDialogHeader(icon: icon, title: title)
+                      else
+                        _DialogHeader(icon: icon, title: title),
+                      SizedBox(height: theme.spacing.md),
+                      DefaultTextStyle(
+                        style: theme.text.body.copyWith(
+                          color: theme.colors.mutedForeground,
+                        ),
+                        textAlign: expanded
+                            ? TextAlign.start
+                            : TextAlign.center,
+                        child: content,
+                      ),
+                      if (actions.isNotEmpty) ...[
+                        SizedBox(height: theme.spacing.lg),
+                        _DialogActions(
+                          actions: actions,
+                          contentWidth: contentWidth,
                         ),
                       ],
-                    ),
-                    SizedBox(height: theme.spacing.md),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: DefaultTextStyle(
-                          style: theme.text.body,
-                          child: content,
-                        ),
-                      ),
-                    ),
-                    if (actions.isNotEmpty) ...[
-                      SizedBox(height: theme.spacing.lg),
-                      LayoutBuilder(
-                        builder: (context, actionConstraints) {
-                          if (actionConstraints.maxWidth < 420) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: actions
-                                  .map(
-                                    (action) => Padding(
-                                      padding: EdgeInsets.only(
-                                        top: theme.spacing.sm,
-                                      ),
-                                      child: action,
-                                    ),
-                                  )
-                                  .toList(),
-                            );
-                          }
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: actions
-                                .map(
-                                  (action) => Padding(
-                                    padding: EdgeInsetsDirectional.only(
-                                      start: theme.spacing.sm,
-                                    ),
-                                    child: action,
-                                  ),
-                                )
-                                .toList(),
-                          );
-                        },
-                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             );
@@ -176,95 +142,87 @@ final class RudiDialog extends StatelessWidget {
   }
 }
 
-/// Surface and drag behavior for a modal bottom sheet.
-final class RudiBottomSheet extends StatefulWidget {
-  /// Creates a bottom-sheet surface.
-  const RudiBottomSheet({
-    required this.child,
-    this.onDismissed,
-    this.maxWidth = 720,
-    super.key,
-  });
+final class _DialogHeader extends StatelessWidget {
+  const _DialogHeader({required this.icon, required this.title});
 
-  /// Sheet content.
-  final Widget child;
-
-  /// Called when a downward drag crosses the dismissal threshold.
-  final VoidCallback? onDismissed;
-
-  /// Maximum sheet width on large windows.
-  final double maxWidth;
-
-  @override
-  State<RudiBottomSheet> createState() => _RudiBottomSheetState();
-}
-
-final class _RudiBottomSheetState extends State<RudiBottomSheet> {
-  double _offset = 0;
+  final Widget? icon;
+  final Widget title;
 
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
-    return SafeArea(
-      top: false,
-      child: Transform.translate(
-        offset: Offset(0, _offset),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: widget.maxWidth,
-            maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+    return Column(
+      children: [
+        if (icon != null) ...[
+          IconTheme(
+            data: IconThemeData(color: theme.colors.foreground, size: 60),
+            child: icon!,
           ),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onVerticalDragUpdate: widget.onDismissed == null
-                ? null
-                : (details) {
-                    setState(() {
-                      _offset = (_offset + details.delta.dy).clamp(0, 400);
-                    });
-                  },
-            onVerticalDragEnd: widget.onDismissed == null
-                ? null
-                : (details) {
-                    if (_offset > 120 || (details.primaryVelocity ?? 0) > 700) {
-                      widget.onDismissed!();
-                    } else {
-                      setState(() => _offset = 0);
-                    }
-                  },
-            child: Container(
-              padding: EdgeInsets.fromLTRB(
-                theme.spacing.lg,
-                theme.spacing.sm,
-                theme.spacing.lg,
-                MediaQuery.viewInsetsOf(context).bottom + theme.spacing.lg,
-              ),
-              decoration: BoxDecoration(
-                color: theme.colors.surfaceContainer,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(theme.radii.xl),
-                ),
-                border: Border.all(color: theme.colors.outline),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 5,
-                    margin: EdgeInsets.only(bottom: theme.spacing.md),
-                    decoration: BoxDecoration(
-                      color: theme.colors.outline,
-                      borderRadius: BorderRadius.circular(theme.radii.pill),
-                    ),
-                  ),
-                  Flexible(child: widget.child),
-                ],
-              ),
-            ),
-          ),
+          SizedBox(height: theme.spacing.lg),
+        ],
+        DefaultTextStyle(
+          style: theme.text.headline,
+          textAlign: TextAlign.center,
+          child: title,
         ),
-      ),
+      ],
+    );
+  }
+}
+
+final class _ExpandedDialogHeader extends StatelessWidget {
+  const _ExpandedDialogHeader({required this.icon, required this.title});
+
+  final Widget? icon;
+  final Widget title;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.rudiTheme;
+    return Row(
+      children: [
+        if (icon != null) ...[
+          IconTheme(
+            data: IconThemeData(color: theme.colors.foreground, size: 40),
+            child: icon!,
+          ),
+          SizedBox(width: theme.spacing.md),
+        ],
+        Expanded(
+          child: DefaultTextStyle(style: theme.text.headline, child: title),
+        ),
+      ],
+    );
+  }
+}
+
+final class _DialogActions extends StatelessWidget {
+  const _DialogActions({required this.actions, required this.contentWidth});
+
+  final List<Widget> actions;
+  final double contentWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final spacing = context.rudiTheme.spacing.sm;
+    if (contentWidth >= 460) {
+      return Row(
+        children: [
+          for (final (index, action) in actions.indexed) ...[
+            Expanded(child: action),
+            if (index < actions.length - 1) SizedBox(width: spacing),
+          ],
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (index, action) in actions.indexed) ...[
+          action,
+          if (index < actions.length - 1) SizedBox(height: spacing),
+        ],
+      ],
     );
   }
 }

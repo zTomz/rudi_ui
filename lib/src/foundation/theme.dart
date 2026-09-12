@@ -127,6 +127,44 @@ final class RudiColorScheme {
       focus: blend(first.focus, second.focus),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is RudiColorScheme &&
+            background == other.background &&
+            foreground == other.foreground &&
+            mutedForeground == other.mutedForeground &&
+            surface == other.surface &&
+            surfaceContainer == other.surfaceContainer &&
+            primary == other.primary &&
+            onPrimary == other.onPrimary &&
+            accent == other.accent &&
+            onAccent == other.onAccent &&
+            error == other.error &&
+            onError == other.onError &&
+            outline == other.outline &&
+            scrim == other.scrim &&
+            focus == other.focus;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    background,
+    foreground,
+    mutedForeground,
+    surface,
+    surfaceContainer,
+    primary,
+    onPrimary,
+    accent,
+    onAccent,
+    error,
+    onError,
+    outline,
+    scrim,
+    focus,
+  );
 }
 
 /// Typography roles used by Rudi UI.
@@ -237,6 +275,22 @@ final class RudiTextTheme {
       caption: blend(first.caption, second.caption),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is RudiTextTheme &&
+            display == other.display &&
+            headline == other.headline &&
+            title == other.title &&
+            body == other.body &&
+            label == other.label &&
+            caption == other.caption;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(display, headline, title, body, label, caption);
 }
 
 /// Immutable configuration consumed by Rudi UI components.
@@ -390,6 +444,32 @@ final class RudiThemeData {
       highContrast: t < 0.5 ? first.highContrast : second.highContrast,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is RudiThemeData &&
+            brightness == other.brightness &&
+            colors == other.colors &&
+            text == other.text &&
+            spacing == other.spacing &&
+            radii == other.radii &&
+            motion == other.motion &&
+            feedback == other.feedback &&
+            highContrast == other.highContrast;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    brightness,
+    colors,
+    text,
+    spacing,
+    radii,
+    motion,
+    feedback,
+    highContrast,
+  );
 }
 
 /// Supplies [RudiThemeData] to descendant widgets.

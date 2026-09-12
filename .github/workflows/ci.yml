@@ -9,14 +9,26 @@ jobs:
   verify:
     strategy:
       matrix:
-        flutter-version: ['3.47.0']
+        include:
+          - flutter-version: '3.47.0'
+            flutter-channel: stable
+            minimum-version: true
+          - flutter-version: ''
+            flutter-channel: stable
+            minimum-version: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - if: matrix.flutter-version != ''
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ matrix.flutter-version }}
-          channel: stable
+          channel: ${{ matrix.flutter-channel }}
+          cache: true
+      - if: matrix.flutter-version == ''
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter-channel }}
           cache: true
       - run: flutter pub get
       - run: flutter pub get
@@ -30,9 +42,9 @@ jobs:
         working-directory: example
       - run: dart run tool/check_import_boundaries.dart
       # Dartdoc on Flutter 3.47 has an upstream @docImport failure; restore the doc job when fixed.
-      - if: matrix.flutter-version == '3.47.0'
+      - if: matrix.minimum-version
         run: dart pub global activate pana
-      - if: matrix.flutter-version == '3.47.0'
+      - if: matrix.minimum-version
         run: pana --no-warning .
       - run: dart pub publish --dry-run
 

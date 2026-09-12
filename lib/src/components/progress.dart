@@ -321,6 +321,7 @@ final class RudiDurationRuler extends StatefulWidget {
     required this.semanticLabel,
     required this.semanticValueBuilder,
     this.divisions,
+    this.previewOffset = 0,
     super.key,
   });
 
@@ -344,6 +345,9 @@ final class RudiDurationRuler extends StatefulWidget {
 
   /// Optional number of discrete intervals.
   final int? divisions;
+
+  /// Read-only visual offset, useful for product previews and demos.
+  final double previewOffset;
 
   @override
   State<RudiDurationRuler> createState() => _RudiDurationRulerState();
@@ -537,12 +541,13 @@ final class _RudiDurationRulerState extends State<RudiDurationRuler> {
                   IgnorePointer(
                     child: CustomPaint(
                       painter: _RudiRulerPainter(
-                        scrollOffset: _scrollOffset,
+                        scrollOffset: _scrollOffset + widget.previewOffset,
                         accentColor: theme.colors.accent,
                         majorTickColor: theme.colors.onPrimary,
                         tickColor: theme.colors.onPrimary.withAlpha(150),
                         tickSpacing: _tickSpacing,
                         divisionCount: _divisionCount,
+                        tickIndexOffset: widget.min.inSeconds,
                       ),
                     ),
                   ),
@@ -657,6 +662,7 @@ final class _RudiRulerPainter extends CustomPainter {
     required this.tickColor,
     required this.tickSpacing,
     required this.divisionCount,
+    required this.tickIndexOffset,
   });
 
   final double scrollOffset;
@@ -665,6 +671,7 @@ final class _RudiRulerPainter extends CustomPainter {
   final Color tickColor;
   final double tickSpacing;
   final int divisionCount;
+  final int tickIndexOffset;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -680,7 +687,7 @@ final class _RudiRulerPainter extends CustomPainter {
         continue;
       }
       final selected = index == clampedSelection.round();
-      final major = index % 5 == 0;
+      final major = (index + tickIndexOffset) % 5 == 0;
       final height = major ? 40.0 : 34.0;
       final width = selected ? 9.0 : 6.0;
       final color = selected
@@ -704,7 +711,8 @@ final class _RudiRulerPainter extends CustomPainter {
         majorTickColor != oldDelegate.majorTickColor ||
         tickColor != oldDelegate.tickColor ||
         tickSpacing != oldDelegate.tickSpacing ||
-        divisionCount != oldDelegate.divisionCount;
+        divisionCount != oldDelegate.divisionCount ||
+        tickIndexOffset != oldDelegate.tickIndexOffset;
   }
 }
 

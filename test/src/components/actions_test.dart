@@ -1,3 +1,6 @@
+import 'dart:ui' show Tristate;
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +36,111 @@ void main() {
 
     await tester.tap(find.text('Disabled'));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('RudiButton expands on phones and caps its tablet width', (
+    tester,
+  ) async {
+    Future<Size> pumpAt(double width, {double minHeight = 56}) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: SizedBox(
+            width: width,
+            child: RudiButton(
+              key: const ValueKey('responsive-button'),
+              label: 'Continue',
+              minHeight: minHeight,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      );
+      return tester.getSize(
+        find.descendant(
+          of: find.byKey(const ValueKey('responsive-button')),
+          matching: find.byType(RudiPressable),
+        ),
+      );
+    }
+
+    expect(await pumpAt(360), const Size(360, 56));
+    expect(await pumpAt(900), const Size(560, 56));
+    expect(await pumpAt(360, minHeight: 72), const Size(360, 72));
+  });
+
+  testWidgets('RudiPressable supports a long-press-only action', (
+    tester,
+  ) async {
+    var longPresses = 0;
+    await tester.pumpWidget(
+      _TestApp(
+        child: RudiPressable(
+          onLongPress: () => longPresses++,
+          builder: (context, state) => const SizedBox(
+            key: ValueKey('long-press-only'),
+            width: 80,
+            height: 80,
+          ),
+        ),
+      ),
+    );
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('long-press-only'))),
+    );
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+    await gesture.up();
+
+    expect(longPresses, 1);
+  });
+
+  testWidgets('RudiPressable honors its explicit enabled state', (
+    tester,
+  ) async {
+    var activations = 0;
+    await tester.pumpWidget(
+      _TestApp(
+        child: RudiPressable(
+          enabled: false,
+          onPressed: () => activations++,
+          child: const SizedBox(
+            key: ValueKey('disabled-pressable'),
+            width: 80,
+            height: 80,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('disabled-pressable')),
+      warnIfMissed: false,
+    );
+
+    expect(activations, 0);
+    final semantics = tester.getSemantics(
+      find.byKey(const ValueKey('disabled-pressable')),
+    );
+    expect(semantics.flagsCollection.isEnabled, Tristate.isFalse);
+  });
+
+  testWidgets('RudiPressable without callbacks is disabled', (tester) async {
+    await tester.pumpWidget(
+      const _TestApp(
+        child: RudiPressable(
+          child: SizedBox(
+            key: ValueKey('passive-pressable'),
+            width: 80,
+            height: 80,
+          ),
+        ),
+      ),
+    );
+
+    final semantics = tester.getSemantics(
+      find.byKey(const ValueKey('passive-pressable')),
+    );
+    expect(semantics.flagsCollection.isEnabled, Tristate.isFalse);
   });
 
   testWidgets('RudiHoldToConfirm completes after configured duration', (
@@ -73,7 +181,7 @@ void main() {
     expect(confirmations, 2);
   });
 
-  testWidgets('Loop interaction controls preserve their original geometry', (
+  testWidgets('interaction controls preserve their established geometry', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -153,17 +261,71 @@ void main() {
     await tester.pumpAndSettle();
     expect(confirmations, 2);
   });
+
+  testWidgets('RudiSwipeAction follows the theme haptic policy', (
+    tester,
+  ) async {
+    var pulses = 0;
+    var hapticCompletions = 0;
+    var confirmations = 0;
+
+    Future<void> pumpAction(RudiFeedbackPolicy feedback) async {
+      await tester.pumpWidget(
+        _TestApp(
+          feedback: feedback,
+          child: SizedBox(
+            width: 360,
+            child: RudiSwipeAction(
+              key: ValueKey(feedback.hapticsEnabled),
+              label: 'Swipe',
+              thumb: const RudiGlyph(RudiGlyphType.chevron),
+              onConfirmed: () => confirmations++,
+              onHapticPulse: (_) => pulses++,
+              onHapticCompleted: () => hapticCompletions++,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await pumpAction(RudiFeedbackPolicy.silent);
+    var gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('swipe-thumb'))),
+    );
+    await gesture.moveBy(const Offset(300, 0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect((pulses, hapticCompletions, confirmations), (0, 0, 1));
+
+    await pumpAction(
+      const RudiFeedbackPolicy(hapticsEnabled: true, soundsEnabled: false),
+    );
+    gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('swipe-thumb'))),
+    );
+    await gesture.moveBy(const Offset(300, 0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(pulses, greaterThan(0));
+    expect(hapticCompletions, 1);
+    expect(confirmations, 2);
+  });
 }
 
 final class _TestApp extends StatelessWidget {
-  const _TestApp({required this.child});
+  const _TestApp({
+    required this.child,
+    this.feedback = RudiFeedbackPolicy.silent,
+  });
 
   final Widget child;
+  final RudiFeedbackPolicy feedback;
 
   @override
   Widget build(BuildContext context) {
     return RudiApp(
-      theme: RudiThemeData.light(feedback: RudiFeedbackPolicy.silent),
+      theme: RudiThemeData.light(feedback: feedback),
       home: RudiPage(child: Center(child: child)),
     );
   }

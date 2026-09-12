@@ -16,7 +16,7 @@ final class RudiSnack {
     this.duration = const Duration(seconds: 4),
     this.actionLabel,
     this.onAction,
-    this.maxLines = 3,
+    this.maxLines = 1,
   });
 
   /// Visible message.
@@ -35,7 +35,7 @@ final class RudiSnack {
   final VoidCallback? onAction;
 
   /// Maximum number of message lines.
-  final int maxLines;
+  final int? maxLines;
 }
 
 /// Programmatic controller for a [RudiMessenger].
@@ -210,20 +210,42 @@ final class _RudiSnackView extends StatelessWidget {
       liveRegion: true,
       container: true,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: theme.spacing.md,
-          vertical: theme.spacing.sm,
-        ),
+        padding: snack.icon == null
+            ? EdgeInsets.symmetric(
+                horizontal: theme.spacing.md,
+                vertical: theme.spacing.sm + theme.spacing.xs,
+              )
+            : EdgeInsets.fromLTRB(
+                theme.spacing.sm,
+                theme.spacing.sm,
+                theme.spacing.md,
+                theme.spacing.sm,
+              ),
         decoration: BoxDecoration(
           color: theme.colors.primary,
-          borderRadius: BorderRadius.circular(theme.radii.lg),
+          borderRadius: BorderRadius.circular(theme.radii.pill),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x26000000),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             if (snack.icon != null) ...[
-              IconTheme(
-                data: IconThemeData(color: theme.colors.onPrimary, size: 20),
-                child: snack.icon!,
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: theme.colors.accent,
+                  shape: BoxShape.circle,
+                ),
+                child: IconTheme(
+                  data: IconThemeData(color: theme.colors.onAccent, size: 18),
+                  child: Center(child: snack.icon),
+                ),
               ),
               SizedBox(width: theme.spacing.sm),
             ],
@@ -231,8 +253,13 @@ final class _RudiSnackView extends StatelessWidget {
               child: Text(
                 snack.message,
                 maxLines: snack.maxLines,
-                overflow: TextOverflow.ellipsis,
-                style: theme.text.body.copyWith(color: theme.colors.onPrimary),
+                overflow: snack.maxLines == null
+                    ? TextOverflow.visible
+                    : TextOverflow.ellipsis,
+                style: theme.text.body.copyWith(
+                  color: theme.colors.onPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             if (snack.actionLabel case final label?) ...[

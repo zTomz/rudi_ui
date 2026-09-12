@@ -41,6 +41,21 @@ final class RudiSpacing {
 
   /// Double-extra-large spacing.
   final double xxl;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is RudiSpacing &&
+            xs == other.xs &&
+            sm == other.sm &&
+            md == other.md &&
+            lg == other.lg &&
+            xl == other.xl &&
+            xxl == other.xxl;
+  }
+
+  @override
+  int get hashCode => Object.hash(xs, sm, md, lg, xl, xxl);
 }
 
 /// Corner radii used throughout Rudi UI.
@@ -72,6 +87,20 @@ final class RudiRadii {
 
   /// Fully rounded corner radius.
   final double pill;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is RudiRadii &&
+            sm == other.sm &&
+            md == other.md &&
+            lg == other.lg &&
+            xl == other.xl &&
+            pill == other.pill;
+  }
+
+  @override
+  int get hashCode => Object.hash(sm, md, lg, xl, pill);
 }
 
 /// Motion durations, curves, and spring behavior used by Rudi UI.
@@ -124,6 +153,32 @@ final class RudiMotion {
 
   /// Spring used for direct-manipulation transitions.
   final SpringDescription spring;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is RudiMotion &&
+            fast == other.fast &&
+            normal == other.normal &&
+            slow == other.slow &&
+            standardCurve == other.standardCurve &&
+            emphasizedCurve == other.emphasizedCurve &&
+            spring.mass == other.spring.mass &&
+            spring.stiffness == other.spring.stiffness &&
+            spring.damping == other.spring.damping;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    fast,
+    normal,
+    slow,
+    standardCurve,
+    emphasizedCurve,
+    spring.mass,
+    spring.stiffness,
+    spring.damping,
+  );
 }
 
 /// Width breakpoints used for adaptive Rudi UI layouts.

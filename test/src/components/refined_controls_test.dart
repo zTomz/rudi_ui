@@ -110,6 +110,30 @@ void main() {
       },
     );
   }
+
+  testWidgets('settings rows grow for wrapped and scaled text', (tester) async {
+    await tester.pumpWidget(
+      RudiApp(
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: const SizedBox(
+            width: 320,
+            child: RudiSettingsTile(
+              title: 'Accessible setting',
+              subtitle: 'Supporting text can wrap without being clipped.',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(RudiSettingsTile)).height,
+      greaterThan(64),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'sheet without close icon can dismiss by barrier and system back',
     (tester) async {
@@ -129,7 +153,7 @@ void main() {
     },
   );
   testWidgets(
-    'floating indicator reaches last requested tab after rapid taps, including RTL',
+    'floating selection reaches the last requested tab after rapid taps',
     (tester) async {
       for (final rtl in [false, true]) {
         await tester.pumpWidget(_NavigationHarness(rtl: rtl));
@@ -139,8 +163,13 @@ void main() {
         }
         await tester.pumpAndSettle();
         final target = tester.getCenter(find.byKey(const ValueKey('nav-3')));
-        final indicator = tester.getCenter(find.byType(AnimatedPositioned));
-        expect(indicator.dx, closeTo(target.dx, .1));
+        final selectedSurface = tester.getCenter(
+          find.descendant(
+            of: find.byKey(const ValueKey('nav-3')),
+            matching: find.byType(AnimatedContainer),
+          ),
+        );
+        expect(selectedSurface.dx, closeTo(target.dx, .1));
         expect(tester.takeException(), isNull);
       }
     },
@@ -218,6 +247,35 @@ void main() {
     expect(value, true);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('icon settings rows expose Loop geometry and toggle semantics', (
+    tester,
+  ) async {
+    var value = false;
+    await tester.pumpWidget(
+      RudiApp(
+        home: RudiSettingsGroup(
+          children: [
+            RudiSettingsTile.switchTile(
+              icon: const IconData(0xe000),
+              label: 'Haptics',
+              value: value,
+              onChanged: (next) => value = next,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final tile = find.byType(RudiSettingsTile);
+    expect(tester.getSize(tile).height, RudiSettingsTile.height);
+    expect(
+      tester.getSemantics(tile).getSemanticsData().flagsCollection.isToggled,
+      Tristate.isFalse,
+    );
+    await tester.tap(tile);
+    expect(value, true);
+  });
 }
 
 final class const _SheetHarness({
@@ -239,13 +297,12 @@ final class const _SheetHarness({
             onPressed: () => unawaited(
               showRudiBottomSheet<void>(
                 context: context,
-                title: 'Options',
                 barrierLabel: 'Close',
-                closeIcon: showClose
-                    ? const RudiGlyph(RudiGlyphType.close)
-                    : null,
-                builder: (context) => Column(
-                  mainAxisSize: .min,
+                builder: (context) => RudiBottomSheet(
+                  title: const Text('Options'),
+                  trailing: showClose
+                      ? const RudiBottomSheetCloseButton(semanticLabel: 'Close')
+                      : null,
                   children: [
                     for (var i = 0; i < (long ? 30 : 2); i++)
                       RudiSettingsTile(title: 'Item $i'),

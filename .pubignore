@@ -7,3 +7,13 @@ packages/
 preview/
 tool/
 *.iml
+
+# pub.dev only needs the focused Dart example, not generated app runners.
+example/analysis_options.yaml
+example/android/
+example/ios/
+example/linux/
+example/macos/
+example/test/
+example/web/
+example/windows/

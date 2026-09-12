@@ -109,10 +109,6 @@ final class _PreviewWorkspaceState extends State<_PreviewWorkspace> {
     return RudiPage(
       padding: EdgeInsets.zero,
       navigation: RudiFloatingNavigationBar(
-        backgroundColor: const Color(0xFF10100F),
-        indicatorColor: const Color(0xFFF7F7F5),
-        selectedColor: const Color(0xFF10100F),
-        unselectedColor: const Color(0xFFF7F7F5),
         destinations: destinations,
         selectedIndex: _page,
         onDestinationSelected: (value) => setState(() => _page = value),
@@ -352,8 +348,7 @@ final class _OverviewPage extends StatelessWidget {
       const _SectionHeader(
         eyebrow: 'Latest components',
         title: 'Small set. Complete behavior.',
-        description:
-            'The newest building blocks are shown in a real interface, not a wall of isolated demos.',
+        description: 'The newest building blocks are shown in a real interface, not a wall of isolated demos.',
       ),
       const SizedBox(height: 24),
       LayoutBuilder(
@@ -410,24 +405,28 @@ final class _NavigationFeatureState extends State<_NavigationFeature> {
       const SizedBox(height: 24),
       Center(
         child: RudiFloatingNavigationBar(
-          backgroundColor: const Color(0xFF10100F),
-          indicatorColor: const Color(0xFFF7F7F5),
-          selectedColor: const Color(0xFF10100F),
-          unselectedColor: const Color(0xFFF7F7F5),
+          compact: true,
           selectedIndex: _selected,
           onDestinationSelected: (value) => setState(() => _selected = value),
-          destinations: const [
+          destinations: [
             RudiNavigationDestination(
-              icon: Icon(SolarIconsOutline.home),
-              selectedIcon: Icon(SolarIconsBold.home),
+              icon: const Icon(SolarIconsOutline.home),
+              selectedIcon: const Icon(SolarIconsBold.home),
               label: 'Browse',
+              action: RudiNavigationAction(
+                icon: const Icon(SolarIconsOutline.addCircle),
+                label: 'Create item',
+                onPressed: () => RudiMessenger.of(context).show(
+                  const RudiSnack(message: 'Contextual action activated.'),
+                ),
+              ),
             ),
-            RudiNavigationDestination(
+            const RudiNavigationDestination(
               icon: Icon(SolarIconsOutline.widget),
               selectedIcon: Icon(SolarIconsBold.widget),
               label: 'Move',
             ),
-            RudiNavigationDestination(
+            const RudiNavigationDestination(
               icon: Icon(SolarIconsOutline.settingsMinimalistic),
               selectedIcon: Icon(SolarIconsBold.settingsMinimalistic),
               label: 'Alert',
@@ -480,13 +479,18 @@ final class _RouteActions extends StatelessWidget {
     children: [
       RudiButton(
         label: 'Show message',
+        expand: false,
         leading: const RudiGlyph(RudiGlyphType.check),
-        onPressed: () => RudiMessenger.of(
-          context,
-        ).show(const RudiSnack(message: 'Saved locally.', actionLabel: 'Undo')),
+        onPressed: () => RudiMessenger.of(context).show(
+          const RudiSnack(
+            message: 'Saved locally.',
+            icon: RudiGlyph(RudiGlyphType.check),
+          ),
+        ),
       ),
       RudiButton(
         label: 'Open dialog',
+        expand: false,
         variant: RudiButtonVariant.subtle,
         onPressed: () => showRudiDialog<void>(
           context: context,
@@ -507,20 +511,23 @@ final class _RouteActions extends StatelessWidget {
       ),
       RudiButton(
         label: 'Open sheet',
+        expand: false,
         variant: RudiButtonVariant.subtle,
         onPressed: () => showRudiBottomSheet<void>(
           context: context,
-          title: 'A native Rudi surface',
           barrierLabel: 'Dismiss bottom sheet',
-          builder: (sheetContext) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          builder: (sheetContext) => RudiBottomSheet(
+            title: const Text('A native Rudi surface'),
+            trailing: RudiBottomSheetCloseButton(
+              semanticLabel: 'Dismiss bottom sheet',
+            ),
             children: [
               Text(
                 'Drag, tap the barrier or press Escape to dismiss this route.',
                 style: sheetContext.rudiTheme.text.body,
               ),
-              const SizedBox(height: 24),
+            ],
+            actions: [
               RudiButton(
                 label: 'Done',
                 onPressed: () => Navigator.pop(sheetContext),
@@ -550,8 +557,7 @@ final class _ControlsPage extends StatelessWidget {
     const _SectionHeader(
       eyebrow: 'Controls',
       title: 'Direct, precise, accessible.',
-      description:
-          'Controls share touch targets, keyboard behavior and reduced-motion support.',
+      description: 'Controls share touch targets, keyboard behavior and reduced-motion support.',
     ),
     const SizedBox(height: 36),
     const RudiTextField(
@@ -587,10 +593,17 @@ final class _ControlsPage extends StatelessWidget {
     ),
     const SizedBox(height: 56),
     const _SectionHeader(
+      eyebrow: 'Settings',
+      title: 'Application patterns, ready to compose.',
+      description: 'Grouped rows, icon-first actions, switches and disclosure share one interaction model.',
+    ),
+    const SizedBox(height: 24),
+    const _SettingsFeature(),
+    const SizedBox(height: 56),
+    const _SectionHeader(
       eyebrow: 'Calendar',
       title: 'A month that moves naturally.',
-      description:
-          'Swipe between months and keep day states readable without shrinking their touch targets.',
+      description: 'Swipe between months and keep day states readable without shrinking their touch targets.',
     ),
     const SizedBox(height: 24),
     Center(
@@ -603,12 +616,80 @@ final class _ControlsPage extends StatelessWidget {
     const _SectionHeader(
       eyebrow: 'Confirmation',
       title: 'When a tap should mean more.',
-      description:
-          'Hold and swipe affordances prevent accidental consequential actions.',
+      description: 'Hold and swipe affordances prevent accidental consequential actions.',
     ),
     const SizedBox(height: 24),
     const _ConfirmationControls(),
   ]);
+}
+
+final class _SettingsFeature extends StatefulWidget {
+  const _SettingsFeature();
+
+  @override
+  State<_SettingsFeature> createState() => _SettingsFeatureState();
+}
+
+final class _SettingsFeatureState extends State<_SettingsFeature> {
+  bool _quietMode = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.rudiTheme;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final settings = RudiSettingsGroup(
+          title: 'WORKSPACE',
+          children: [
+            RudiSettingsTile.icon(
+              icon: SolarIconsOutline.user,
+              label: 'Profile',
+              subtitle: 'Typography and account preferences',
+              onTap: () =>
+                  RudiMessenger.of(context)
+                      .show(const RudiSnack(message: 'Profile selected.')),
+            ),
+            RudiSettingsTile.switchTile(
+              icon: SolarIconsOutline.bellOff,
+              label: 'Quiet mode',
+              value: _quietMode,
+              onChanged: (value) => setState(() => _quietMode = value),
+            ),
+          ],
+        );
+        final disclosure = RudiSettingsSection(
+          title: 'Progressive disclosure',
+          description:
+              'Secondary detail stays available without crowding the page.',
+          children: [
+            RudiExpandableControl(
+              header: Text('Implementation details', style: theme.text.label),
+              child: Text(
+                'The control owns only its local expansion state and follows the active motion policy.',
+                style: theme.text.body.copyWith(
+                  color: theme.colors.mutedForeground,
+                ),
+              ),
+            ),
+          ],
+        );
+        if (constraints.maxWidth < 720) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [settings, const SizedBox(height: 32), disclosure],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: settings),
+            const SizedBox(width: 48),
+            Expanded(child: disclosure),
+          ],
+        );
+      },
+    );
+  }
 }
 
 final class _CalendarPreview extends StatefulWidget {
@@ -678,9 +759,9 @@ final class _ConfirmationControls extends StatelessWidget {
   const _ConfirmationControls();
   @override
   Widget build(BuildContext context) {
-    void confirm() => RudiMessenger.of(
-      context,
-    ).show(const RudiSnack(message: 'Gesture confirmed.'));
+    void confirm() =>
+        RudiMessenger.of(context)
+            .show(const RudiSnack(message: 'Gesture confirmed.'));
     return LayoutBuilder(
       builder: (context, constraints) {
         final hold = RudiHoldToConfirm(
@@ -724,8 +805,7 @@ final class _StatesPage extends StatelessWidget {
     const _SectionHeader(
       eyebrow: 'States',
       title: 'Every outcome has a surface.',
-      description:
-          'The states below make recovery, waiting and empty moments part of the product.',
+      description: 'The states below make recovery, waiting and empty moments part of the product.',
     ),
     const SizedBox(height: 32),
     RudiSettingsGroup(
@@ -774,9 +854,9 @@ final class _EmptyState extends StatelessWidget {
     message: 'New work will appear here when it is ready.',
     action: RudiButton(
       label: 'Create item',
-      onPressed: () => RudiMessenger.of(
-        context,
-      ).show(const RudiSnack(message: 'New item created.')),
+      onPressed: () =>
+          RudiMessenger.of(context)
+              .show(const RudiSnack(message: 'New item created.')),
     ),
   );
 }
@@ -792,9 +872,9 @@ final class _ErrorState extends StatelessWidget {
     hideDetailsLabel: 'Hide details',
     primaryAction: RudiButton(
       label: 'Try again',
-      onPressed: () => RudiMessenger.of(
-        context,
-      ).show(const RudiSnack(message: 'Trying again…')),
+      onPressed: () =>
+          RudiMessenger.of(context)
+              .show(const RudiSnack(message: 'Trying again…')),
     ),
   );
 }
