@@ -67,7 +67,10 @@ void main() {
     await tester.ensureVisible(find.byType(RudiCalendar).last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Application patterns, ready to compose.'), findsOneWidget);
+    expect(
+      find.text('Application patterns, ready to compose.'),
+      findsOneWidget,
+    );
     expect(find.text('Quiet mode'), findsOneWidget);
     expect(find.text('A month that moves naturally.'), findsWidgets);
     expect(find.byType(RudiCalendar), findsWidgets);
