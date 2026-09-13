@@ -1,7 +1,13 @@
 # Rudi UI
 
 <p align="center">
-  <img src="assets/images/rudi-ui-icon.png" alt="Rudi UI dog icon" width="160" />
+  <img src="https://raw.githubusercontent.com/zTomz/rudi_ui/main/assets/images/rudi-ui-icon.png" alt="Rudi UI dog icon" width="160" />
+</p>
+
+<p align="center">
+  <a href="https://pub.dev/packages/rudi_ui">
+    <img src="https://img.shields.io/pub/v/rudi_ui.svg?logo=dart&amp;label=pub.dev&amp;color=0175C2" alt="rudi_ui on pub.dev" />
+  </a>
 </p>
 
 <p align="center">
@@ -10,7 +16,9 @@
 </p>
 
 <p align="center">
-  <a href="https://ztomz.github.io/rudi_ui/"><strong>Open the interactive showcase</strong></a>
+  <a href="https://pub.dev/packages/rudi_ui"><strong>View package on pub.dev</strong></a>
+  ·
+  <a href="https://ztomz.github.io/rudi_ui/">Open the interactive showcase</a>
   ·
   <a href="https://github.com/zTomz/rudi_ui/issues">Report an issue</a>
 </p>
@@ -41,7 +49,7 @@ Or add the package manually:
 
 ```yaml
 dependencies:
-  rudi_ui: ^0.3.0
+  rudi_ui: ^0.3.1
 ```
 
 Rudi UI 0.3 requires Dart 3.13 and Flutter 3.47 or newer.
@@ -176,7 +184,7 @@ examples.
   <tr>
     <td align="center" width="160">
       <a href="https://play.google.com/store/apps/details?id=com.tomvogel.loop">
-        <img src="assets/images/loop-app-icon.png" alt="Loop app icon" width="96" />
+        <img src="https://raw.githubusercontent.com/zTomz/rudi_ui/main/assets/images/loop-app-icon.png" alt="Loop app icon" width="96" />
       </a>
     </td>
     <td>
@@ -188,7 +196,7 @@ examples.
   <tr>
     <td align="center" width="160">
       <a href="https://github.com/zTomz/Sudoku">
-        <img src="assets/images/sudoku-app-icon.png" alt="Sudoku app icon" width="96" />
+        <img src="https://raw.githubusercontent.com/zTomz/rudi_ui/main/assets/images/sudoku-app-icon.png" alt="Sudoku app icon" width="96" />
       </a>
     </td>
     <td>

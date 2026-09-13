@@ -5,6 +5,17 @@ All notable changes to Rudi UI are documented in this file.
 Rudi UI follows Semantic Versioning. Until 1.0, breaking API changes increment
 the minor version.
 
+## 0.3.1 - 2026-09-13
+
+### Fixed
+
+- Fixes README images not appearing on pub.dev by using absolute image URLs.
+
+### Changed
+
+- Adds a prominent pub.dev package link and dynamic version badge to the
+  README.
+
 ## 0.3.0 - 2026-09-13
 
 ### Added
