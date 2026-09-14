@@ -5,6 +5,14 @@ All notable changes to Rudi UI are documented in this file.
 Rudi UI follows Semantic Versioning. Until 1.0, breaking API changes increment
 the minor version.
 
+## 0.4.0 - 2026-09-14
+
+### Added
+
+- Ships an installable `rudi-ui-building` agent skill with package-specific
+  composition, accessibility, code-quality and testing guidance, generated API
+  discovery and CI-enforced synchronization.
+
 ## 0.3.1 - 2026-09-13
 
 ### Fixed

@@ -1,5 +1,6 @@
 .dart_tool/
 .github/
+AGENTS.md
 build/
 coverage/
 doc/

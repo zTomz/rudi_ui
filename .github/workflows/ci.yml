@@ -41,6 +41,7 @@ jobs:
       - run: flutter test
         working-directory: example
       - run: dart run tool/check_import_boundaries.dart
+      - run: dart run tool/generate_skill_reference.dart --check
       # Dartdoc on Flutter 3.47 has an upstream @docImport failure; restore the doc job when fixed.
       - if: matrix.minimum-version
         run: dart pub global activate pana

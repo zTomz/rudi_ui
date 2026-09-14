@@ -49,10 +49,23 @@ Or add the package manually:
 
 ```yaml
 dependencies:
-  rudi_ui: ^0.3.1
+  rudi_ui: ^0.4.0
 ```
 
-Rudi UI 0.3 requires Dart 3.13 and Flutter 3.47 or newer.
+Rudi UI 0.4 requires Dart 3.13 and Flutter 3.47 or newer.
+
+### Agent skill
+
+Rudi UI ships an agent skill with the package so supported coding assistants
+can use the resolved version's APIs and design-system conventions. From the
+root of an application that depends on `rudi_ui`, install or update it with:
+
+```shell
+dart run skills@ get -p rudi_ui
+```
+
+To install all skills provided by the application's dependencies without an
+interactive prompt, use `dart run skills@ get --all`.
 
 ## Quick start
 
@@ -220,6 +233,7 @@ dart format --output=none --set-exit-if-changed lib test example tool
 dart analyze --fatal-infos
 flutter test
 dart run tool/check_import_boundaries.dart
+dart run tool/generate_skill_reference.dart --check
 dart pub publish --dry-run
 ```
 
