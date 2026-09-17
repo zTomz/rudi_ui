@@ -38,6 +38,50 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('RudiIconButton matches plain icon button geometry and states', (
+    tester,
+  ) async {
+    final theme = RudiThemeData.light();
+    await tester.pumpWidget(
+      RudiApp(
+        theme: theme,
+        home: RudiPage(
+          child: Center(
+            child: RudiIconButton(
+              icon: const Icon(IconData(0xe000)),
+              semanticLabel: 'Add',
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final button = find.byType(RudiIconButton);
+    final visual = find.byKey(const ValueKey('rudi-icon-button-visual'));
+    expect(tester.getSize(button), const Size.square(48));
+    expect(tester.getSize(visual), const Size.square(40));
+    final iconTheme = tester
+        .widgetList<IconTheme>(
+          find.descendant(of: button, matching: find.byType(IconTheme)),
+        )
+        .last;
+    expect(iconTheme.data.color, theme.colors.foreground);
+    expect(iconTheme.data.size, 24);
+
+    var decoration = tester.widget<AnimatedContainer>(visual).decoration!;
+    expect((decoration as BoxDecoration).color, const Color(0x00000000));
+
+    final touch = await tester.startGesture(tester.getCenter(button));
+    await tester.pump();
+    decoration = tester.widget<AnimatedContainer>(visual).decoration!;
+    expect(
+      (decoration as BoxDecoration).color,
+      theme.colors.foreground.withValues(alpha: .10),
+    );
+    await touch.up();
+  });
+
   testWidgets('RudiButton expands on phones and caps its tablet width', (
     tester,
   ) async {

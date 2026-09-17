@@ -35,6 +35,10 @@ final class RudiTextField extends StatefulWidget {
     this.enableSuggestions = true,
     this.contextMenuBuilder,
     this.minHeight = defaultMinHeight,
+    this.textAlign = TextAlign.start,
+    this.style,
+    this.contentPadding,
+    this.backgroundColor,
     super.key,
   });
 
@@ -110,6 +114,18 @@ final class RudiTextField extends StatefulWidget {
   /// Minimum height of the decorated input surface.
   final double minHeight;
 
+  /// Horizontal alignment of the editable text and placeholder.
+  final TextAlign textAlign;
+
+  /// Optional editable text style. Semantic colors still follow enabled state.
+  final TextStyle? style;
+
+  /// Inner padding of the decorated input surface.
+  final EdgeInsetsGeometry? contentPadding;
+
+  /// Input surface background, defaulting to the theme surface color.
+  final Color? backgroundColor;
+
   @override
   State<RudiTextField> createState() => _RudiTextFieldState();
 }
@@ -134,6 +150,7 @@ final class _RudiTextFieldState extends State<RudiTextField> {
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
+    final textStyle = widget.style ?? theme.text.body;
     return ListenableBuilder(
       listenable: _focusNode,
       builder: (context, child) {
@@ -163,12 +180,14 @@ final class _RudiTextFieldState extends State<RudiTextField> {
                       ? Duration.zero
                       : theme.motion.fast,
                   constraints: BoxConstraints(minHeight: widget.minHeight),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: theme.spacing.md,
-                    vertical: theme.spacing.sm,
-                  ),
+                  padding:
+                      widget.contentPadding ??
+                      EdgeInsets.symmetric(
+                        horizontal: theme.spacing.md,
+                        vertical: theme.spacing.sm,
+                      ),
                   decoration: BoxDecoration(
-                    color: theme.colors.surface,
+                    color: widget.backgroundColor ?? theme.colors.surface,
                     borderRadius: BorderRadius.circular(theme.radii.lg),
                     border: Border.all(
                       color: borderColor,
@@ -190,16 +209,20 @@ final class _RudiTextFieldState extends State<RudiTextField> {
                       ],
                       Expanded(
                         child: Stack(
-                          alignment: AlignmentDirectional.centerStart,
+                          alignment: AlignmentDirectional.topStart,
                           children: [
                             if (_controller.text.isEmpty && widget.hint != null)
                               IgnorePointer(
-                                child: Text(
-                                  widget.hint!,
-                                  maxLines: widget.maxLines,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.text.body.copyWith(
-                                    color: theme.colors.mutedForeground,
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    widget.hint!,
+                                    textAlign: widget.textAlign,
+                                    maxLines: widget.maxLines,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textStyle.copyWith(
+                                      color: theme.colors.mutedForeground,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -210,11 +233,12 @@ final class _RudiTextFieldState extends State<RudiTextField> {
                               obscureText: widget.obscureText,
                               autocorrect: widget.autocorrect,
                               enableSuggestions: widget.enableSuggestions,
-                              style: theme.text.body.copyWith(
+                              style: textStyle.copyWith(
                                 color: widget.enabled
-                                    ? theme.colors.foreground
+                                    ? textStyle.color ?? theme.colors.foreground
                                     : theme.colors.mutedForeground,
                               ),
+                              textAlign: widget.textAlign,
                               cursorColor: theme.colors.accent,
                               backgroundCursorColor: theme.colors.background,
                               selectionColor: theme.colors.accent.withValues(
@@ -294,6 +318,10 @@ final class RudiTextFormField extends FormField<String> {
     super.enabled = true,
     bool obscureText = false,
     int? maxLines = 1,
+    TextAlign textAlign = TextAlign.start,
+    TextStyle? style,
+    EdgeInsetsGeometry? contentPadding,
+    Color? backgroundColor,
     super.autovalidateMode,
     super.key,
   }) : assert(controller == null || initialValue == null),
@@ -309,6 +337,10 @@ final class RudiTextFormField extends FormField<String> {
              enabled: enabled,
              obscureText: obscureText,
              maxLines: maxLines,
+             textAlign: textAlign,
+             style: style,
+             contentPadding: contentPadding,
+             backgroundColor: backgroundColor,
              onChanged: (value) {
                state.didChange(value);
                onChanged?.call(value);

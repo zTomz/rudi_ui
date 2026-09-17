@@ -100,7 +100,7 @@ final class RudiSettingsTile extends StatelessWidget {
     emphasized: emphasized,
   );
 
-  /// Creates an icon-first setting row with Rudi's switch indicator.
+  /// Creates an icon-first setting row with Rudi's tappable and draggable switch.
   RudiSettingsTile.switchTile({
     required IconData icon,
     required String label,
@@ -110,7 +110,7 @@ final class RudiSettingsTile extends StatelessWidget {
   }) : title = label,
        subtitle = null,
        leading = Icon(icon, fill: value ? 1 : 0),
-       trailing = _RudiSwitchIndicator(value),
+       trailing = _RudiSwitchControl(value: value, onChanged: onChanged),
        onPressed = (() => onChanged(!value)),
        selected = false,
        emphasized = false,
@@ -437,25 +437,32 @@ final class const RudiSettingsGroup({
   }
 }
 
-final class const _RudiSwitchIndicator(final bool value)
-    extends StatelessWidget {
+final class const _RudiSwitchIndicator({
+  required final double position,
+  required final bool dragging,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme,
         reduced = MediaQuery.disableAnimationsOf(context);
+    final duration = reduced || dragging ? Duration.zero : theme.motion.normal;
     return AnimatedContainer(
-      duration: reduced ? Duration.zero : theme.motion.normal,
+      duration: duration,
       curve: theme.motion.standardCurve,
       width: 50,
       height: 30,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: value ? theme.colors.foreground : theme.colors.outline,
+        color: Color.lerp(
+          theme.colors.outline,
+          theme.colors.foreground,
+          position,
+        ),
       ),
       child: AnimatedAlign(
-        alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-        duration: reduced ? Duration.zero : theme.motion.normal,
+        alignment: Alignment(-1 + position * 2, 0),
+        duration: duration,
         curve: Curves.easeOutQuart,
         child: Container(
           width: 22,
@@ -470,7 +477,62 @@ final class const _RudiSwitchIndicator(final bool value)
   }
 }
 
-/// A setting row with a single accessible toggle target and animated indicator.
+final class _RudiSwitchControl extends StatefulWidget {
+  const _RudiSwitchControl({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  State<_RudiSwitchControl> createState() => _RudiSwitchControlState();
+}
+
+final class _RudiSwitchControlState extends State<_RudiSwitchControl> {
+  static const _thumbTravel = 20.0;
+  double? _dragPosition;
+
+  void _startDrag(DragStartDetails details) {
+    setState(() => _dragPosition = widget.value ? 1 : 0);
+  }
+
+  void _updateDrag(DragUpdateDetails details) {
+    final direction = Directionality.of(context) == TextDirection.rtl ? -1 : 1;
+    setState(() {
+      _dragPosition =
+          ((_dragPosition ?? (widget.value ? 1 : 0)) +
+                  direction * (details.primaryDelta ?? 0) / _thumbTravel)
+              .clamp(0, 1);
+    });
+  }
+
+  void _endDrag(DragEndDetails details) {
+    final next = (_dragPosition ?? (widget.value ? 1 : 0)) >= .5;
+    if (next != widget.value) widget.onChanged?.call(next);
+    if (mounted) setState(() => _dragPosition = null);
+  }
+
+  void _cancelDrag() => setState(() => _dragPosition = null);
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onChanged != null;
+    return GestureDetector(
+      key: const ValueKey('rudi-switch-control'),
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
+      onHorizontalDragStart: enabled ? _startDrag : null,
+      onHorizontalDragUpdate: enabled ? _updateDrag : null,
+      onHorizontalDragEnd: enabled ? _endDrag : null,
+      onHorizontalDragCancel: enabled ? _cancelDrag : null,
+      child: _RudiSwitchIndicator(
+        position: _dragPosition ?? (widget.value ? 1 : 0),
+        dragging: _dragPosition != null,
+      ),
+    );
+  }
+}
+
+/// A setting row with one accessible toggle target and a draggable switch.
 final class const RudiSwitchTile({
   required final String title,
   required final bool value,
@@ -496,7 +558,7 @@ final class const RudiSwitchTile({
             supporting!,
             SizedBox(width: context.rudiTheme.spacing.xs),
           ],
-          _RudiSwitchIndicator(value),
+          _RudiSwitchControl(value: value, onChanged: onChanged),
         ],
       ),
     ),

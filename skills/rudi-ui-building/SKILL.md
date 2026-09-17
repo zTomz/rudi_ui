@@ -142,6 +142,29 @@ For a bottom sheet, `showRudiBottomSheet` creates the route only. Its builder
 must return `RudiBottomSheet`; add `RudiBottomSheetCloseButton` when a visible
 close action is needed.
 
+Show transient feedback through the nearest app-wide messenger. Use the named
+constructors for semantic color and icon defaults, and keep the message and
+action label localized by the application:
+
+```dart
+RudiMessenger.of(context).show(
+  RudiSnack.error(
+    message: saveFailedLabel,
+    actionLabel: retryLabel,
+    onAction: retrySave,
+  ),
+);
+```
+
+Use `RudiSnack.info` for informational feedback, `RudiSnack.error` for failures,
+and `RudiSnack.debug` for muted diagnostics. Use the base `RudiSnack`
+constructor for standard feedback and `accentColor` only for a deliberate
+application-specific override. A `RudiMessenger` renders at most four messages
+by default. Additional messages remain queued while their individual durations
+continue; dismissing the newest message with a downward swipe reveals the next
+unexpired message. Change `maxVisibleSnacks` only when the surrounding layout
+requires a smaller or larger visible deck.
+
 ## Verify changes
 
 Review the resulting diff before relying on tools. Remove duplicated styling,

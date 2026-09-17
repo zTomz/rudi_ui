@@ -48,6 +48,54 @@ void main() {
     expect(find.text('Missing value'), findsOneWidget);
   });
 
+  testWidgets('RudiTextField applies alignment, style, and content padding', (
+    tester,
+  ) async {
+    const textStyle = TextStyle(fontSize: 28, fontWeight: FontWeight.w700);
+    const contentPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 2);
+    const background = Color(0xFF123456);
+    await tester.pumpWidget(
+      const _TestApp(
+        child: RudiTextField(
+          hint: 'Number',
+          textAlign: TextAlign.center,
+          style: textStyle,
+          contentPadding: contentPadding,
+          backgroundColor: background,
+        ),
+      ),
+    );
+
+    final editable = tester.widget<EditableText>(find.byType(EditableText));
+    expect(editable.textAlign, TextAlign.center);
+    expect(editable.style.fontSize, 28);
+    expect(editable.style.fontWeight, FontWeight.w700);
+
+    final surfacePadding = tester.widget<AnimatedContainer>(
+      find.descendant(
+        of: find.byType(RudiTextField),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
+    expect(surfacePadding.padding, contentPadding);
+    expect((surfacePadding.decoration! as BoxDecoration).color, background);
+  });
+
+  testWidgets('RudiTextField aligns a multiline hint with the first line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const _TestApp(
+        child: RudiTextField(hint: 'What happened?', minLines: 4, maxLines: 6),
+      ),
+    );
+
+    final hintTop = tester.getTopLeft(find.text('What happened?')).dy;
+    final editableTop = tester.getTopLeft(find.byType(EditableText)).dy;
+
+    expect(hintTop, editableTop);
+  });
+
   testWidgets('RudiNumberInput clamps values at its bounds', (tester) async {
     num? value;
     await tester.pumpWidget(

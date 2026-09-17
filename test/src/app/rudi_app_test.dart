@@ -146,4 +146,97 @@ void main() {
     final rect = tester.getRect(find.byKey(const ValueKey('page-content')));
     expect(rect, const Rect.fromLTWH(0, 0, 400, 600));
   });
+
+  testWidgets('RudiAppBar owns the top safe area and exposes its slots', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    const background = Color(0xFF123456);
+    await tester.pumpWidget(
+      const RudiApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(400, 600),
+            padding: EdgeInsets.only(top: 30),
+          ),
+          child: Column(
+            children: [
+              RudiAppBar(
+                height: 56,
+                backgroundColor: background,
+                leading: Text('Back'),
+                title: Text('Timer'),
+                trailing: Text('Done'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(RudiAppBar)).height, 86);
+    expect(find.text('Back'), findsOneWidget);
+    expect(find.text('Timer'), findsOneWidget);
+    expect(find.text('Done'), findsOneWidget);
+    expect(
+      tester
+          .widget<ColoredBox>(
+            find.descendant(
+              of: find.byType(RudiAppBar),
+              matching: find.byType(ColoredBox),
+            ),
+          )
+          .color,
+      background,
+    );
+  });
+
+  testWidgets('RudiBackButton pops by default', (tester) async {
+    await tester.pumpWidget(
+      RudiApp(
+        home: Builder(
+          builder: (context) => RudiButton(
+            label: 'Open',
+            onPressed: () => Navigator.of(context).push(
+              PageRouteBuilder<void>(
+                pageBuilder: (_, _, _) => RudiAppBar.back(
+                  backButtonSemanticLabel: 'Back',
+                  title: Text('Details'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Details'), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Open'), findsOneWidget);
+  });
+
+  testWidgets('RudiAppBar.back delegates cleanup to its callback', (
+    tester,
+  ) async {
+    var cleanupCalls = 0;
+    await tester.pumpWidget(
+      RudiApp(
+        home: RudiAppBar.back(
+          backButtonSemanticLabel: 'Back',
+          onBack: () => cleanupCalls++,
+        ),
+      ),
+    );
+
+    await tester.tap(find.bySemanticsLabel('Back'));
+    expect(cleanupCalls, 1);
+  });
 }

@@ -1,7 +1,7 @@
 name: rudi_ui
 description: An opinionated, accessible Flutter UI system built without Material or Cupertino design libraries.
-version: 0.4.0
-homepage: https://github.com/zTomz/rudi_ui
+version: 0.5.0
+homepage: https://ztomz.github.io/rudi_ui/
 repository: https://github.com/zTomz/rudi_ui
 issue_tracker: https://github.com/zTomz/rudi_ui/issues
 topics:

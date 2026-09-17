@@ -248,6 +248,60 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('switch indicators can be dragged in both directions', (
+    tester,
+  ) async {
+    var tileValue = false;
+    var iconTileValue = false;
+    await tester.pumpWidget(
+      RudiApp(
+        home: RudiPage(
+          child: StatefulBuilder(
+            builder: (context, setState) => Column(
+              children: [
+                RudiSwitchTile(
+                  title: 'Shortcut',
+                  value: tileValue,
+                  onChanged: (next) => setState(() => tileValue = next),
+                ),
+                RudiSettingsTile.switchTile(
+                  icon: const IconData(0xe000),
+                  label: 'Sound',
+                  value: iconTileValue,
+                  onChanged: (next) => setState(() => iconTileValue = next),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Future<void> dragSwitch(Finder tile, double delta) async {
+      final control = find.descendant(
+        of: tile,
+        matching: find.byKey(const ValueKey('rudi-switch-control')),
+      );
+      await tester.timedDrag(
+        control,
+        Offset(delta, 0),
+        const Duration(milliseconds: 300),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await dragSwitch(find.byType(RudiSwitchTile), 40);
+    expect(tileValue, isTrue);
+    await dragSwitch(find.byType(RudiSwitchTile), -40);
+    expect(tileValue, isFalse);
+
+    final iconTile = find.widgetWithText(RudiSettingsTile, 'Sound');
+    await dragSwitch(iconTile, 40);
+    expect(iconTileValue, isTrue);
+    await dragSwitch(iconTile, -40);
+    expect(iconTileValue, isFalse);
+  });
+
   testWidgets('icon settings rows expose Loop geometry and toggle semantics', (
     tester,
   ) async {

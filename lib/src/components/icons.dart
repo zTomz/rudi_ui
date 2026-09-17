@@ -4,6 +4,9 @@ import '../foundation/theme.dart';
 
 /// Built-in interface glyphs used by Rudi UI.
 enum RudiGlyphType {
+  /// Directional back arrow.
+  back,
+
   /// Close or dismiss.
   close,
 
@@ -44,17 +47,26 @@ final class RudiGlyph extends StatelessWidget {
     return SizedBox.square(
       dimension: size,
       child: CustomPaint(
-        painter: _RudiGlyphPainter(type: type, color: resolvedColor),
+        painter: _RudiGlyphPainter(
+          type: type,
+          color: resolvedColor,
+          textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
+        ),
       ),
     );
   }
 }
 
 final class _RudiGlyphPainter extends CustomPainter {
-  const _RudiGlyphPainter({required this.type, required this.color});
+  const _RudiGlyphPainter({
+    required this.type,
+    required this.color,
+    required this.textDirection,
+  });
 
   final RudiGlyphType type;
   final Color color;
+  final TextDirection textDirection;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -72,6 +84,13 @@ final class _RudiGlyphPainter extends CustomPainter {
           ..lineTo(size.width * 0.75, size.height * 0.75)
           ..moveTo(size.width * 0.75, size.height * 0.25)
           ..lineTo(size.width * 0.25, size.height * 0.75);
+      case RudiGlyphType.back:
+        final start = textDirection == TextDirection.ltr ? 0.72 : 0.28;
+        final point = textDirection == TextDirection.ltr ? 0.36 : 0.64;
+        path
+          ..moveTo(size.width * start, size.height * 0.18)
+          ..lineTo(size.width * point, size.height * 0.5)
+          ..lineTo(size.width * start, size.height * 0.82);
       case RudiGlyphType.check:
         path
           ..moveTo(size.width * 0.18, size.height * 0.52)
@@ -109,6 +128,8 @@ final class _RudiGlyphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RudiGlyphPainter oldDelegate) {
-    return type != oldDelegate.type || color != oldDelegate.color;
+    return type != oldDelegate.type ||
+        color != oldDelegate.color ||
+        textDirection != oldDelegate.textDirection;
   }
 }

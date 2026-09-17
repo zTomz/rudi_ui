@@ -5,6 +5,42 @@ All notable changes to Rudi UI are documented in this file.
 Rudi UI follows Semantic Versioning. Until 1.0, breaking API changes increment
 the minor version.
 
+## 0.5.0 - 2026-09-17
+
+### Added
+
+- Adds `RudiAppBar` and `RudiBackButton`, including automatic back navigation
+  and optional custom cleanup callbacks.
+- Adds `RudiTooltip` for passive hover, focus, and long-press explanations.
+
+### Changed
+
+- Renames `RudiPageHeader` to `RudiAppBar`.
+- Aligns `RudiIconButton` with plain Material icon-button geometry, colors and
+  subtle interaction overlays without adding a Material dependency.
+- Makes Rudi switch indicators draggable in both directions as well as tappable.
+- Refines snackbars with a dark gradient surface, customizable accent border,
+  direction-aware dotted pattern and slightly larger leading icon.
+- Adds `RudiSnack.info`, `RudiSnack.error` and `RudiSnack.debug` constructors
+  with semantic theme colors and appropriate default icons.
+- Presents up to four concurrent snackbars as a compact layered deck while
+  retaining unexpired overflow for later reveal, with independent durations,
+  animated insertion and downward swipe dismissal.
+
+### Fixed
+
+- Keeps passive tooltips centered over their trigger whenever viewport margins
+  allow it.
+- Keeps the snackbar deck anchored and smoothly promotes the next card while
+  its front card is swiped away.
+
+## 0.4.1 - 2026-09-15
+
+### Added
+
+- Adds text alignment, custom text style, surface color and content padding to
+  `RudiTextField` and `RudiTextFormField` for compact and numeric inputs.
+
 ## 0.4.0 - 2026-09-14
 
 ### Added

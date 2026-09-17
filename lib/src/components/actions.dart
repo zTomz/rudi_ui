@@ -239,7 +239,9 @@ final class _RudiPressableState extends State<RudiPressable>
                       pressed: _pressed,
                     )
                   : null,
-              child: content,
+              child: widget.semanticLabel == null
+                  ? content
+                  : ExcludeSemantics(child: content),
             ),
           ),
         ),
@@ -449,8 +451,12 @@ final class RudiIconButton extends StatelessWidget {
     required this.semanticLabel,
     required this.onPressed,
     this.size = 48,
+    this.iconSize = 24,
+    this.color,
+    this.disabledColor,
     super.key,
-  });
+  }) : assert(size > 0),
+       assert(iconSize > 0);
 
   /// Icon displayed by the button.
   final Widget icon;
@@ -464,38 +470,56 @@ final class RudiIconButton extends StatelessWidget {
   /// Square touch-target size. Values below 48 are clamped to 48.
   final double size;
 
+  /// Icon size within the button.
+  final double iconSize;
+
+  /// Icon color when enabled. Defaults to the foreground color.
+  final Color? color;
+
+  /// Icon color when disabled.
+  final Color? disabledColor;
+
   @override
   Widget build(BuildContext context) {
     final theme = context.rudiTheme;
     final targetSize = size < 48 ? 48.0 : size;
+    final visualSize = math.min(targetSize, math.max(40.0, iconSize + 16.0));
     return RudiPressable(
       onPressed: onPressed,
       semanticLabel: semanticLabel,
       builder: (context, state) {
-        return AnimatedContainer(
-          duration: MediaQuery.disableAnimationsOf(context)
-              ? Duration.zero
-              : theme.motion.fast,
+        final effectiveColor = state.enabled
+            ? color ?? theme.colors.foreground
+            : disabledColor ??
+                  theme.colors.mutedForeground.withValues(alpha: .38);
+        final overlayColor = !state.enabled
+            ? const Color(0x00000000)
+            : state.pressed || state.focused
+            ? effectiveColor.withValues(alpha: .10)
+            : state.hovered
+            ? effectiveColor.withValues(alpha: .08)
+            : const Color(0x00000000);
+        return SizedBox(
           width: targetSize,
           height: targetSize,
-          decoration: BoxDecoration(
-            color: state.pressed || state.hovered
-                ? theme.colors.surface
-                : const Color(0x00000000),
-            borderRadius: BorderRadius.circular(theme.radii.pill),
-            border: state.focused
-                ? Border.all(color: theme.colors.focus, width: 2)
-                : null,
-          ),
           child: Center(
-            child: IconTheme(
-              data: IconThemeData(
-                color: state.enabled
-                    ? theme.colors.foreground
-                    : theme.colors.mutedForeground,
-                size: 24,
+            child: AnimatedContainer(
+              key: const ValueKey('rudi-icon-button-visual'),
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : theme.motion.fast,
+              width: visualSize,
+              height: visualSize,
+              decoration: BoxDecoration(
+                color: overlayColor,
+                shape: BoxShape.circle,
               ),
-              child: icon,
+              child: Center(
+                child: IconTheme(
+                  data: IconThemeData(color: effectiveColor, size: iconSize),
+                  child: icon,
+                ),
+              ),
             ),
           ),
         );

@@ -11,7 +11,6 @@ dependencies:
   device_preview: ^3.0.0
   flutter:
     sdk: flutter
-  google_fonts: ^8.2.1
   rudi_ui:
     path: ../
   solar_icons: ^0.1.0

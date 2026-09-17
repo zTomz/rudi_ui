@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../components/actions.dart';
+import '../components/icons.dart';
 import '../components/overlays.dart';
+import '../components/tooltip.dart';
 import '../foundation/theme.dart';
 
 /// Selects how [RudiApp] resolves light and dark themes.
@@ -309,6 +314,152 @@ final class RudiPage extends StatelessWidget {
         content,
         PositionedDirectional(start: 0, end: 0, bottom: 0, child: navigation!),
       ],
+    );
+  }
+}
+
+/// A safe-area-aware app bar for a [RudiPage].
+///
+/// The app bar owns the top system inset, so pair it with
+/// `RudiPage.safeAreaTop: false` when both share a page.
+final class RudiAppBar extends StatelessWidget {
+  /// Creates an app bar with fully custom leading and trailing content.
+  const RudiAppBar({
+    this.title,
+    this.leading,
+    this.trailing,
+    this.height = 64,
+    this.padding,
+    this.backgroundColor,
+    super.key,
+  });
+
+  /// Creates an app bar with Rudi's standard back button.
+  factory RudiAppBar.back({
+    required String backButtonSemanticLabel,
+    Widget? title,
+    VoidCallback? onBack,
+    Widget? backIcon,
+    Widget? trailing,
+    double height = 64,
+    EdgeInsetsGeometry? padding,
+    Color? backgroundColor,
+    Key? key,
+  }) => RudiAppBar(
+    key: key,
+    title: title,
+    leading: RudiBackButton(
+      semanticLabel: backButtonSemanticLabel,
+      onPressed: onBack,
+      icon: backIcon,
+    ),
+    trailing: trailing,
+    height: height,
+    padding: padding,
+    backgroundColor: backgroundColor,
+  );
+
+  /// Main header content.
+  final Widget? title;
+
+  /// Optional content before [title].
+  final Widget? leading;
+
+  /// Optional content after [title].
+  final Widget? trailing;
+
+  /// Header height below the top system inset.
+  final double height;
+
+  /// Horizontal content padding.
+  final EdgeInsetsGeometry? padding;
+
+  /// Header background, defaulting to the page background.
+  final Color? backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.rudiTheme;
+    return ColoredBox(
+      color: backgroundColor ?? theme.colors.background,
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: height,
+          child: Padding(
+            padding:
+                padding ??
+                EdgeInsetsDirectional.symmetric(horizontal: theme.spacing.md),
+            child: Row(
+              children: [
+                if (leading != null) ...[
+                  IconTheme(
+                    data: IconThemeData(color: theme.colors.foreground),
+                    child: leading!,
+                  ),
+                  SizedBox(width: theme.spacing.sm),
+                ],
+                Expanded(
+                  child: DefaultTextStyle(
+                    style: theme.text.headline,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    child: title ?? const SizedBox.shrink(),
+                  ),
+                ),
+                if (trailing != null) ...[
+                  SizedBox(width: theme.spacing.sm),
+                  IconTheme(
+                    data: IconThemeData(color: theme.colors.foreground),
+                    child: trailing!,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A standard back action that pops the nearest navigator by default.
+///
+/// Supply [onPressed] when cleanup or other work must happen before navigating.
+final class RudiBackButton extends StatelessWidget {
+  /// Creates a back button.
+  const RudiBackButton({
+    required this.semanticLabel,
+    this.onPressed,
+    this.icon,
+    super.key,
+  });
+
+  /// Localized accessibility label and tooltip message.
+  final String semanticLabel;
+
+  /// Optional custom action. Defaults to `Navigator.maybePop`.
+  final VoidCallback? onPressed;
+
+  /// Optional custom icon.
+  final Widget? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return RudiTooltip(
+      message: semanticLabel,
+      child: RudiIconButton(
+        semanticLabel: semanticLabel,
+        onPressed: () {
+          final callback = onPressed;
+          if (callback != null) {
+            callback();
+            return;
+          }
+          unawaited(Navigator.of(context).maybePop());
+        },
+        icon: icon ?? const RudiGlyph(RudiGlyphType.back, size: 28),
+      ),
     );
   }
 }
